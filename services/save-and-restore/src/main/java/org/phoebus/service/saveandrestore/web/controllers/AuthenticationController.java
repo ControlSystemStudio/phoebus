@@ -1,24 +1,11 @@
 /*
- * Copyright (C) 2024 European Spallation Source ERIC.
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version 2
- *  of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Copyright (C) 2026 European Spallation Source ERIC.
  *
  */
 
 package org.phoebus.service.saveandrestore.web.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.phoebus.applications.saveandrestore.model.LoginCredentials;
 import org.phoebus.applications.saveandrestore.model.UserData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +35,9 @@ public class AuthenticationController extends BaseController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private String roleServerRestore;
+
     /**
      * Authenticates user.
      *
@@ -62,12 +52,24 @@ public class AuthenticationController extends BaseController {
             authentication = authenticationManager.authenticate(authentication);
         } catch (AuthenticationException e) {
             Logger.getLogger(AuthenticationController.class.getName()).log(Level.WARNING, "Unable to authenticate user " + loginCredentials.username(), e);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).<UserData>build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         List<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.toList());
         return new ResponseEntity<>(
                 new UserData(loginCredentials.username(), roles),
                 HttpStatus.OK);
+    }
+
+
+    /**
+     * Checks if a user is authorized to do server side restore. Note that this must be a POST endpoint
+     * as GET endpoints do not provide information on user authorization.
+     * @param request A {@link HttpServletRequest} object
+     * @return <code>true</code> if authorized, i.e. has the associated role.
+     */
+    @PostMapping(value = "server-restore-authorized")
+    public boolean authorizedForServerRestore(HttpServletRequest request) {
+        return request.isUserInRole("ROLE_" + roleServerRestore.toUpperCase());
     }
 }

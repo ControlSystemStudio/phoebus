@@ -1,19 +1,5 @@
 /*
- * Copyright (C) 2024 European Spallation Source ERIC.
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version 2
- *  of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Copyright (C) 2026 European Spallation Source ERIC.
  *
  */
 
@@ -51,6 +37,9 @@ public class AuthorizationHelper {
 
     @Autowired
     private String roleUser;
+
+    @Autowired
+    private String roleServerRestore;
 
     @Value("${authorization.permitall:true}")
     private boolean permitAll;
@@ -287,5 +276,15 @@ public class AuthorizationHelper {
      */
     public boolean mayMoveOrCopy(MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
         return permitAll || methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleAdmin);
+    }
+
+    /**
+     * Checks if user is authorized to perform server side restore.
+     * @param methodSecurityExpressionOperations {@link MethodSecurityExpressionOperations} Spring managed object
+     *                                                 queried for authorization.
+     * @return <code>false</code> if user is not authorized to request server side restore, otherwise <code>true</code>.
+     */
+    public boolean hasServerRestoreAuthorization(MethodSecurityExpressionOperations methodSecurityExpressionOperations){
+        return methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleServerRestore);
     }
 }
