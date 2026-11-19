@@ -348,6 +348,8 @@ public class SnapshotController extends SaveAndRestoreBaseController
      */
     protected final SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
 
+    private final SimpleBooleanProperty serverRestoreAuthorized = new SimpleBooleanProperty(false);
+
     /**
      * The {@link Snapshot} object holding the data for this controller.
      */
@@ -505,17 +507,18 @@ public class SnapshotController extends SaveAndRestoreBaseController
         toggleGroup.selectedToggleProperty().addListener((obs, o, n) ->
                 snapshotModeProperty.set((SnapshotMode) n.getUserData()));
 
+
         restoreFromClient.setUserData(RestoreMode.CLIENT_RESTORE);
         restoreFromService.setUserData(RestoreMode.SERVICE_RESTORE);
 
-        String restoreModeString = Preferences.default_restore_mode;
-        if (restoreModeString == null || restoreModeString.isEmpty()) {
+        String[] restoreModes = Preferences.restore_modes;
+        if (restoreModes == null || restoreModes.length == 0) {
             restoreModeProperty.set(RestoreMode.CLIENT_RESTORE);
         } else {
             try {
-                restoreModeProperty.set(RestoreMode.valueOf(restoreModeString));
+                restoreModeProperty.set(RestoreMode.valueOf(restoreModes[0]));
             } catch (IllegalArgumentException e) {
-                LOGGER.log(Level.WARNING, "Unknown restore mode \"" + restoreModeString + "\", defaulting to " + RestoreMode.CLIENT_RESTORE);
+                LOGGER.log(Level.WARNING, "Unknown restore mode \"" + restoreModes[0] + "\", defaulting to " + RestoreMode.CLIENT_RESTORE);
                 restoreModeProperty.set(RestoreMode.CLIENT_RESTORE);
             }
         }
@@ -525,6 +528,7 @@ public class SnapshotController extends SaveAndRestoreBaseController
         restoreToggleGroup.selectToggle(restoreToggleGroup.getToggles().stream()
                 .filter(t -> t.getUserData().equals(restoreModeProperty.get())).findFirst().get());
         restoreToggleGroup.selectedToggleProperty().addListener((obs, o, n) -> restoreModeProperty.set((RestoreMode) n.getUserData()));
+
 
         snapshotTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         snapshotTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
