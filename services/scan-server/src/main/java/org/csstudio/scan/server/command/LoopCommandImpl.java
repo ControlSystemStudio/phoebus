@@ -147,8 +147,8 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
     /** Return numeric value of start/end/step, or NaN if it's a PVReference (unknown until runtime) */
     private static double toDoubleOrNaN(final Object v)
     {
-        if (v instanceof Number)
-            return ((Number) v).doubleValue();
+        if (v instanceof Number number)
+            return number.doubleValue();
         return Double.NaN; // PVReference — resolved at execute() time
     }
 

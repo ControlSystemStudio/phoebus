@@ -39,7 +39,7 @@ class DerbyDataLogger extends RDBDataLogger
         // Path where Derby creates databases
         System.setProperty("derby.system.home", location);
 
-        logger.info("Derby Data Log directory: " + System.getProperty("derby.system.home"));
+        logger.log(Level.INFO, "Derby Data Log directory: {0}", System.getProperty("derby.system.home"));
 
         // Debug options
         // System.setProperty("derby.language.logStatementText", "true");
@@ -72,7 +72,7 @@ class DerbyDataLogger extends RDBDataLogger
 		else
 		{
 			RDBDataLogger.setJdbcUrl("jdbc:derby:scan;create=true");
-			logger.info("Derby Data Log directory: " + location);
+            logger.log(Level.INFO, "Derby Data Log directory: {0}", location);
 			Class.forName(DERBY_DRIVER).getDeclaredConstructor().newInstance();
 		}
 
@@ -166,7 +166,7 @@ class DerbyDataLogger extends RDBDataLogger
                     if (line.endsWith(";"))
                     {    // Found end of command
                         cmd.append(line.substring(0, line.length()-1));
-                        if (cmd.length() > 0)
+                        if (!cmd.isEmpty())
                         {
                             final String sql = cmd.toString();
                             try

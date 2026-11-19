@@ -22,24 +22,24 @@ package org.csstudio.scan.util;
  */
 public class PVReference
 {
-    private final String pv_name;
+    private final String pvName;
 
-    /** @param pv_name Name of the PV whose value will be read at runtime */
-    public PVReference(final String pv_name)
+    /** @param pvName Name of the PV whose value will be read at runtime */
+    public PVReference(final String pvName)
     {
-        this.pv_name = pv_name;
+        this.pvName = pvName;
     }
 
     /** @return PV name */
     public String getPVName()
     {
-        return pv_name;
+        return pvName;
     }
 
     @Override
     public String toString()
     {
-        return pv_name;
+        return pvName;
     }
 
     @Override
@@ -47,14 +47,14 @@ public class PVReference
     {
         if (this == other)
             return true;
-        if (!(other instanceof PVReference))
+        if (!(other instanceof PVReference pvReference))
             return false;
-        return pv_name.equals(((PVReference) other).pv_name);
+        return pvName.equals(pvReference.pvName);
     }
 
     @Override
     public int hashCode()
     {
-        return pv_name.hashCode();
+        return pvName.hashCode();
     }
 }

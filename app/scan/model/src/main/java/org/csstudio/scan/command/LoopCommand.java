@@ -189,9 +189,9 @@ public class LoopCommand extends ScanCommandWithBody
     /** @param stepsize Increment of the loop variable ({@link Double} or {@link PVReference}) */
     public void setStepSize(final Object stepsize)
     {
-        if (stepsize instanceof Double)
+        if (stepsize instanceof Double step)
         {
-            final double s = (Double) stepsize;
+            final double s = step.doubleValue();
             this.stepsize = (s == 0.0) ? 1.0 : s;
             // Use fraction of stepsize for tolerance
             tolerance = Math.abs((Double) this.stepsize / 10.0);

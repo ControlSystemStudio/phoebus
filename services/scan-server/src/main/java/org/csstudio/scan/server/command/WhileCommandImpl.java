@@ -26,7 +26,6 @@ import java.util.Arrays;
 
 import org.csstudio.scan.command.Comparison;
 import org.csstudio.scan.command.WhileCommand;
-import org.csstudio.scan.device.ScanSampleHelper;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanCommandImplTool;
@@ -39,7 +38,6 @@ import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.SimulatedDevice;
 import org.csstudio.scan.server.internal.JythonSupport;
 import org.csstudio.scan.util.PVReference;
-import org.epics.vtype.VDouble;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.util.time.TimeDuration;
 
@@ -97,23 +95,23 @@ public class WhileCommandImpl extends ScanCommandImpl<WhileCommand>
     @Override
     public String[] getDeviceNames(final MacroContext macros) throws Exception
     {
-        final String device_name = command.getDeviceName();
-        final Set<String> device_names = new HashSet<String>();
-        device_names.add(macros.resolveMacros(device_name));
+        final String deviceName = command.getDeviceName();
+        final Set<String> deviceNames = new HashSet<String>();
+        deviceNames.add(macros.resolveMacros(deviceName));
         if (command.getWait()  &&  !command.getReadback().isEmpty())
-            device_names.add(macros.resolveMacros(command.getReadback()));
+            deviceNames.add(macros.resolveMacros(command.getReadback()));
         // If desired_value is a PV reference, that PV also needs to be opened
         final Object desired = command.getDesiredValue();
-        if (desired instanceof PVReference)
-            device_names.add(macros.resolveMacros(((PVReference) desired).getPVName()));
+        if (desired instanceof PVReference pvReference)
+            deviceNames.add(macros.resolveMacros(pvReference.getPVName()));
         for (ScanCommandImpl<?> command : implementation)
         {
             final String[] names = command.getDeviceNames(macros);
             if (logger.isLoggable(Level.INFO))
                 logger.log(Level.INFO, () -> "getDeviceNames: names=" + Arrays.toString(names));
-            java.util.Collections.addAll(device_names, names);
+            java.util.Collections.addAll(deviceNames, names);
         }
-        return device_names.toArray(new String[device_names.size()]);
+        return deviceNames.toArray(new String[deviceNames.size()]);
     }
 
 
@@ -245,16 +243,30 @@ public class WhileCommandImpl extends ScanCommandImpl<WhileCommand>
 
         // Set device to value for current step of loop
         doSkip = false;
+        synchronized (this)
+        {
+            thread = Thread.currentThread();
+        }
 
-        // Execute loop body or show some estimate of progress
-        // (not including nested commands)
-        if (doSkip)
-            context.workPerformed(implementation.size());
-        else
-            context.execute(implementation);
+        try
+        {
+            // Execute loop body or show some estimate of progress
+            // (not including nested commands)
+            if (doSkip)
+                context.workPerformed(implementation.size());
+            else
+                context.execute(implementation);
+        }
+        finally
+        {
+            synchronized (this)
+            {
+                thread = null;
+            }
+        }
 
         // If there are no commands that inc. the work units, do it yourself
-        if (implementation.size() <= 0)
+        if (implementation.isEmpty())
             context.workPerformed(1);
     }
 

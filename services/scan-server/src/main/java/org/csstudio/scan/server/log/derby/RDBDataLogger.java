@@ -340,8 +340,8 @@ abstract public class RDBDataLogger implements AutoCloseable
         // Could fetch all samples for scan ID, but
         // organizing the retrieval by device in case
         // that's helpful later on
-        final String[] devices = getScanDevices(scan_id);
-        for (String device : devices)
+        final String[] deviceNames = getScanDevices(scan_id);
+        for (String device : deviceNames)
         {
             final List<ScanSample> samples = getScanSamples(scan_id, device);
             deviceLogs.put(device, samples);

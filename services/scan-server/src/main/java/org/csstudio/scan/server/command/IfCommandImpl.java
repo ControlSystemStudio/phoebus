@@ -82,8 +82,8 @@ public class IfCommandImpl extends ScanCommandImpl<IfCommand>
         device_names.add(macros.resolveMacros(device_name));
         // If desired_value is a PV reference, that PV also needs to be opened
         final Object desired = command.getDesiredValue();
-        if (desired instanceof PVReference)
-            device_names.add(macros.resolveMacros(((PVReference) desired).getPVName()));
+        if (desired instanceof PVReference pvReference)
+            device_names.add(macros.resolveMacros(pvReference.getPVName()));
         for (ScanCommandImpl<?> command : implementation)
         {
             final String[] names = command.getDeviceNames(macros);
@@ -120,11 +120,11 @@ public class IfCommandImpl extends ScanCommandImpl<IfCommand>
             condition.fetchInitialValue();
             is_condition_met = condition.isConditionMet();
         }
-        else if (desired instanceof PVReference)
+        else if (desired instanceof PVReference pvReference)
         {
             // Read the referenced PV's current value at runtime and compare numerically
             final Device refDevice = context.getDevice(
-                    context.getMacros().resolveMacros(((PVReference) desired).getPVName()));
+                context.getMacros().resolveMacros(pvReference.getPVName()));
             final double refValue = VTypeHelper.toDouble(
                 refDevice.read(ScanServerInstance.getScanConfig().getReadTimeout()));
             final NumericValueCondition condition = new NumericValueCondition(device, command.getComparison(),

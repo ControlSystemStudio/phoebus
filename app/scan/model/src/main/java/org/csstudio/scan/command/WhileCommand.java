@@ -50,6 +50,8 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class WhileCommand extends ScanCommandWithBody
 {
+    private static final String COMPARISON_TAG = "comparison";
+
     private volatile String deviceName;
     private volatile Comparison comparison;
     private volatile Object desiredValue;
@@ -83,7 +85,7 @@ public class WhileCommand extends ScanCommandWithBody
             final Comparison comparison, final Object desiredValue,
             final ScanCommand command)
     {
-        this(deviceName, comparison, desiredValue, new ScanCommand[] { command });
+        this(deviceName, comparison, desiredValue, java.util.List.of(command));
     }
 
     /** Initialize
@@ -121,7 +123,7 @@ public class WhileCommand extends ScanCommandWithBody
     protected void configureProperties(final List<ScanCommandProperty> properties)
     {
         properties.add(ScanCommandProperty.DEVICE_NAME);
-        properties.add(new ScanCommandProperty("comparison", "Comparison", Comparison.class));
+        properties.add(new ScanCommandProperty(COMPARISON_TAG, "Comparison", Comparison.class));
         properties.add(new ScanCommandProperty("desired_value", "Desired Value", Object.class));
         properties.add(ScanCommandProperty.TOLERANCE);
         super.configureProperties(properties);
@@ -240,7 +242,7 @@ public class WhileCommand extends ScanCommandWithBody
         element.appendChild(dom.createTextNode(StringOrDouble.quote(desiredValue)));
         command_element.appendChild(element);
 
-        element = dom.createElement("comparison");
+        element = dom.createElement(COMPARISON_TAG);
         element.appendChild(dom.createTextNode(comparison.name()));
         command_element.appendChild(element);
 
@@ -295,9 +297,9 @@ public class WhileCommand extends ScanCommandWithBody
         setDesiredValue(StringOrDouble.parse(XMLUtil.getChildString(element, ScanCommandProperty.TAG_VALUE).orElse("0")));
         try
         {
-            setComparison(Comparison.valueOf(XMLUtil.getChildString(element, "comparison").orElse(Comparison.EQUALS.toString())));
+            setComparison(Comparison.valueOf(XMLUtil.getChildString(element, COMPARISON_TAG).orElse(Comparison.EQUALS.toString())));
         }
-        catch (Exception _)
+        catch (Exception ignored)
         {
             setComparison(Comparison.EQUALS);
         }
