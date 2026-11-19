@@ -24,7 +24,7 @@ jobs:
       os: ${{ matrix.os }}
       upload-artifacts: true
       # Linux aarch64 is not yet a supported platform; report but tolerate failures
-      allow-failure: ${{ matrix.os == 'ubuntu-24.04-arm' }}
+      allow-failure: ${{ startsWith(matrix.os, 'ubuntu-') && endsWith(matrix.os, '-arm') }}
   unit-test:
     uses: ./.github/workflows/_unit-test.yml
   ui-test:
