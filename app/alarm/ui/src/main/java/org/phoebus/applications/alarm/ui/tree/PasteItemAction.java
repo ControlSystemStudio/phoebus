@@ -126,7 +126,7 @@ public class PasteItemAction extends MenuItem
                         pvPane.getChildren().add(new Label(pv));
                     }
                     final ScrollPane scrollPane = new ScrollPane(pvPane);
-                    scrollPane.setPrefHeight(400.0);
+                    scrollPane.setMaxHeight(400.0);
 
                     alert.getDialogPane().setContent(scrollPane);
                     alert.show();
