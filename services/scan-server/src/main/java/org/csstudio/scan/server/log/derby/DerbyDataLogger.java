@@ -39,7 +39,8 @@ class DerbyDataLogger extends RDBDataLogger
         // Path where Derby creates databases
         System.setProperty("derby.system.home", location);
 
-        logger.log(Level.INFO, "Derby Data Log directory: {0}", System.getProperty("derby.system.home"));
+        if (logger.isLoggable(Level.INFO))
+            logger.log(Level.INFO, "Derby Data Log directory: {0}", System.getProperty("derby.system.home"));
 
         // Debug options
         // System.setProperty("derby.language.logStatementText", "true");

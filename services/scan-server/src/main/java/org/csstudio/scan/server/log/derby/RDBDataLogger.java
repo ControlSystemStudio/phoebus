@@ -387,7 +387,7 @@ abstract public class RDBDataLogger implements AutoCloseable
      */
     private String[] getScanDevices(final long scan_id) throws SQLException
     {
-        final List<String> devices = new ArrayList<String>();
+        final List<String> deviceNames = new ArrayList<String>();
         try
         (
             final PreparedStatement statement = connection.prepareStatement(
@@ -397,10 +397,10 @@ abstract public class RDBDataLogger implements AutoCloseable
             statement.setLong(1, scan_id);
             final ResultSet result = statement.executeQuery();
             while (result.next())
-                devices.add(result.getString(1));
+                deviceNames.add(result.getString(1));
             result.close();
         }
-        return devices.toArray(new String[devices.size()]);
+        return deviceNames.toArray(new String[deviceNames.size()]);
     }
 
     /** Delete logged data for a scan

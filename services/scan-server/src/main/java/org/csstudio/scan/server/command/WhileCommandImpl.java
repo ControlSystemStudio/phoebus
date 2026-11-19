@@ -83,12 +83,12 @@ public class WhileCommandImpl extends ScanCommandImpl<WhileCommand>
     @Override
     public long getWorkUnits()
     {
-        long body_units = 0;
+        long bodyUnits = 0;
         for (ScanCommandImpl<?> command : implementation)
-            body_units += command.getWorkUnits();
-        if (body_units == 0)
+            bodyUnits += command.getWorkUnits();
+        if (bodyUnits == 0)
             return 0;
-        return body_units;
+        return bodyUnits;
     }
 
     /** {@inheritDoc} */

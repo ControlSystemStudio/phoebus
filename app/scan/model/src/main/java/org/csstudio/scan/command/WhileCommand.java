@@ -231,59 +231,59 @@ public class WhileCommand extends ScanCommandWithBody
 
     /** {@inheritDoc} */
     @Override
-    public void addXMLElements(final Document dom, final Element command_element)
+    public void addXMLElements(final Document dom, final Element commandElement)
     {
         Element element = dom.createElement("device");
         element.appendChild(dom.createTextNode(deviceName));
-        command_element.appendChild(element);
+        commandElement.appendChild(element);
 
         element = dom.createElement("value");
         // Quoted: literal String; unquoted: Double or PVReference (PV name)
         element.appendChild(dom.createTextNode(StringOrDouble.quote(desiredValue)));
-        command_element.appendChild(element);
+        commandElement.appendChild(element);
 
         element = dom.createElement(COMPARISON_TAG);
         element.appendChild(dom.createTextNode(comparison.name()));
-        command_element.appendChild(element);
+        commandElement.appendChild(element);
 
         if (tolerance > 0.0)
         {
             element = dom.createElement("tolerance");
             element.appendChild(dom.createTextNode(Double.toString(tolerance)));
-            command_element.appendChild(element);
+            commandElement.appendChild(element);
         }
 
         if (completion)
         {
             element = dom.createElement("completion");
             element.appendChild(dom.createTextNode(Boolean.toString(completion)));
-            command_element.appendChild(element);
+            commandElement.appendChild(element);
         }
         if (! wait)
         {
             element = dom.createElement("wait");
             element.appendChild(dom.createTextNode(Boolean.toString(wait)));
-            command_element.appendChild(element);
+            commandElement.appendChild(element);
         }
         if (wait  &&  ! readback.isEmpty())
         {
             element = dom.createElement("readback");
             element.appendChild(dom.createTextNode(readback));
-            command_element.appendChild(element);
+            commandElement.appendChild(element);
         }
         if (tolerance > 0.0)
         {
             element = dom.createElement("tolerance");
             element.appendChild(dom.createTextNode(Double.toString(tolerance)));
-            command_element.appendChild(element);
+            commandElement.appendChild(element);
         }
         if (timeout > 0.0)
         {
             element = dom.createElement("timeout");
             element.appendChild(dom.createTextNode(Double.toString(timeout)));
-            command_element.appendChild(element);
+            commandElement.appendChild(element);
         }
-        super.addXMLElements(dom, command_element);
+        super.addXMLElements(dom, commandElement);
     }
 
     /** {@inheritDoc} */
@@ -299,7 +299,7 @@ public class WhileCommand extends ScanCommandWithBody
         {
             setComparison(Comparison.valueOf(XMLUtil.getChildString(element, COMPARISON_TAG).orElse(Comparison.EQUALS.toString())));
         }
-        catch (Exception ignored)
+        catch (Exception _)
         {
             setComparison(Comparison.EQUALS);
         }
