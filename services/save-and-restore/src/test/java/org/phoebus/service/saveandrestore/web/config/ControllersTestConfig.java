@@ -48,6 +48,9 @@ public class ControllersTestConfig {
     @Value("${role.admin:sar-admin}")
     private String roleAdmin;
 
+    @Value("${role.server.restore:sar-server-restore}")
+    private String roleServerRestore;
+
     @Value("${demo.user:user}")
     private String demoUser;
 
@@ -66,6 +69,12 @@ public class ControllersTestConfig {
     @Value("${demo.readOnly.password:1234}")
     private String demoReadOnlyPassword;
 
+    @Value("${demo.server.restore.user:serverRestoreUser}")
+    private String demoServerRestoreUser;
+
+    @Value("${demo.server.restore.password:serverRestoreUserPass}")
+    private String demoServerRestoreUserPass;
+
     @Bean
     public String demoUser() {
         return demoUser;
@@ -74,6 +83,11 @@ public class ControllersTestConfig {
     @Bean
     public String demoAdmin() {
         return demoAdmin;
+    }
+
+    @Bean
+    public String demoServerRestoreUser() {
+        return demoServerRestoreUser;
     }
 
     @Bean()
@@ -87,13 +101,18 @@ public class ControllersTestConfig {
     }
 
     @Bean
+    public String roleServerRestore(){
+        return roleServerRestore.toUpperCase();
+    }
+
+    @Bean
     public NodeDAO nodeDAO() {
         return Mockito.mock(NodeDAO.class);
     }
 
     @Bean
     public ElasticsearchTreeRepository elasticsearchTreeRepository() {
-      return Mockito.mock(ElasticsearchTreeRepository.class);
+        return Mockito.mock(ElasticsearchTreeRepository.class);
     }
 
     @Bean
@@ -153,6 +172,11 @@ public class ControllersTestConfig {
         return "Basic " + Base64.getEncoder().encodeToString((demoReadOnly + ":" + demoReadOnlyPassword).getBytes());
     }
 
+    @Bean("serverRestoreAuthorization")
+    public String serverRestoreAuthorization() {
+        return "Basic " + Base64.getEncoder().encodeToString((demoServerRestoreUser + ":" + demoServerRestoreUserPass).getBytes());
+    }
+
     @Bean
     public ExecutorService executorService() {
         return Executors.newCachedThreadPool();
@@ -160,7 +184,7 @@ public class ControllersTestConfig {
 
     @Bean
     public SnapshotUtil snapshotUtil() {
-       return new SnapshotUtil();
+        return new SnapshotUtil();
     }
 
     @Bean
