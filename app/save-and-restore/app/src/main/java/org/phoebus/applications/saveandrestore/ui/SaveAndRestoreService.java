@@ -58,6 +58,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -515,6 +516,14 @@ public class SaveAndRestoreService implements WebSocketMessageHandler {
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to deserialize web socket message " + message, e);
         }
+    }
+
+    /**
+     * @return <code>false</code> if user is not yet authenticated or is not
+     * authorized to call restore operations on the server.
+     */
+    public Optional<Boolean> serverRestoreAuthorized(){
+        return saveAndRestoreClient.serverRestoreAuthorized();
     }
 
 }

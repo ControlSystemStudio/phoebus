@@ -93,6 +93,7 @@ import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.saveandrestore.util.Threshold;
 import org.phoebus.saveandrestore.util.Utilities;
 import org.phoebus.saveandrestore.util.VNoData;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -204,14 +205,6 @@ public class SnapshotController extends SaveAndRestoreBaseController
 
     @SuppressWarnings("unused")
     @FXML
-    private RadioButton restoreFromClient;
-
-    @SuppressWarnings("unused")
-    @FXML
-    private RadioButton restoreFromService;
-
-    @SuppressWarnings("unused")
-    @FXML
     private TooltipTableColumn<String> pvNameColumn;
     @SuppressWarnings("unused")
     @FXML
@@ -228,6 +221,9 @@ public class SnapshotController extends SaveAndRestoreBaseController
     @SuppressWarnings("unused")
     @FXML
     private TableColumn<TableEntry, ActionResult> actionResultColumn;
+
+    @FXML
+    private Label invalidConfigLabel;
 
     @SuppressWarnings("unused")
     @FXML
@@ -349,6 +345,13 @@ public class SnapshotController extends SaveAndRestoreBaseController
     protected final SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
 
     /**
+     * Used to manage UI components based on preferred restore mode (client or service) and
+     * actual user authorization for server restore operations. Initially this is true,
+     * but checks are performed to verify this.
+     */
+    private final SimpleBooleanProperty serverRestoreSettingsConsistent = new SimpleBooleanProperty(true);
+
+    /**
      * The {@link Snapshot} object holding the data for this controller.
      */
     private Snapshot snapshot;
@@ -419,8 +422,10 @@ public class SnapshotController extends SaveAndRestoreBaseController
         logAction.visibleProperty().set(ServiceLoader.load(SaveAndRestoreEventReceiver.class).iterator().hasNext());
 
         restoreButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                snapshotRestorableProperty.not().get() ||
-                        userIdentity.isNull().get(), snapshotRestorableProperty, userIdentity));
+                snapshotRestorableProperty.not().get() || serverRestoreSettingsConsistent.not().get() ||
+                        userIdentity.isNull().get(), snapshotRestorableProperty, userIdentity, serverRestoreSettingsConsistent));
+
+        invalidConfigLabel.visibleProperty().bind(serverRestoreSettingsConsistent.not());
 
         SpinnerValueFactory<Double> thresholdSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 0.0, 0.01);
         thresholdSpinnerValueFactory.setConverter(new DoubleStringConverter());
@@ -505,26 +510,13 @@ public class SnapshotController extends SaveAndRestoreBaseController
         toggleGroup.selectedToggleProperty().addListener((obs, o, n) ->
                 snapshotModeProperty.set((SnapshotMode) n.getUserData()));
 
-        restoreFromClient.setUserData(RestoreMode.CLIENT_RESTORE);
-        restoreFromService.setUserData(RestoreMode.SERVICE_RESTORE);
-
-        String restoreModeString = Preferences.default_restore_mode;
-        if (restoreModeString == null || restoreModeString.isEmpty()) {
+        try {
+            restoreModeProperty.set(RestoreMode.valueOf(Preferences.default_restore_mode.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            LOGGER.log(Level.WARNING, "Unknown restore mode \"" + Preferences.default_restore_mode + "\", defaulting to " + RestoreMode.CLIENT_RESTORE);
             restoreModeProperty.set(RestoreMode.CLIENT_RESTORE);
-        } else {
-            try {
-                restoreModeProperty.set(RestoreMode.valueOf(restoreModeString));
-            } catch (IllegalArgumentException e) {
-                LOGGER.log(Level.WARNING, "Unknown restore mode \"" + restoreModeString + "\", defaulting to " + RestoreMode.CLIENT_RESTORE);
-                restoreModeProperty.set(RestoreMode.CLIENT_RESTORE);
-            }
         }
-
-        ToggleGroup restoreToggleGroup = new ToggleGroup();
-        restoreToggleGroup.getToggles().addAll(restoreFromClient, restoreFromService);
-        restoreToggleGroup.selectToggle(restoreToggleGroup.getToggles().stream()
-                .filter(t -> t.getUserData().equals(restoreModeProperty.get())).findFirst().get());
-        restoreToggleGroup.selectedToggleProperty().addListener((obs, o, n) -> restoreModeProperty.set((RestoreMode) n.getUserData()));
+        checkRestoreMode();
 
         snapshotTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         snapshotTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -917,7 +909,7 @@ public class SnapshotController extends SaveAndRestoreBaseController
                     selectedColumn.visibleProperty().set(true);
                     tabTitleProperty.setValue(snapshotNode.getName());
                     tabIdProperty.setValue(snapshotNode.getUniqueId());
-                    snapshotRestorableProperty.set(true);
+                    snapshotRestorableProperty.setValue(true);
                     setTabImage(snapshotNode);
                 });
                 updateUi();
@@ -1652,5 +1644,29 @@ public class SnapshotController extends SaveAndRestoreBaseController
             }
 
         }
+    }
+
+    /**
+     * If preference is set to {@link RestoreMode#SERVICE_RESTORE}, this method will check with
+     * the service if the current user is authorized to perform server side restore. If not authorized,
+     * UI elements are updated accordingly.
+     */
+    private void checkRestoreMode(){
+        if(restoreModeProperty.get().equals(RestoreMode.CLIENT_RESTORE)){
+            serverRestoreSettingsConsistent.setValue(true);
+            return;
+        }
+
+        JobManager.schedule("Check server restore authorization", monitor -> {
+           Optional<Boolean> serverRestoreAuthorizedOptional = saveAndRestoreService.serverRestoreAuthorized();
+           serverRestoreSettingsConsistent.setValue(serverRestoreAuthorizedOptional.isPresent() &&
+                   serverRestoreAuthorizedOptional.get());
+        });
+    }
+
+    @Override
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
+        super.secureStoreChanged(validTokens);
+        checkRestoreMode();
     }
 }

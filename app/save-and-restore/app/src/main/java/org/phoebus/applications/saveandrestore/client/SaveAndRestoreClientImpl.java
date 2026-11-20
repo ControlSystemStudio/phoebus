@@ -43,6 +43,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -663,6 +664,29 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
     public List<SnapshotItem> takeSnapshot(String configurationNodeId) {
         return getCall("/take-snapshot/" + configurationNodeId, new TypeReference<>() {
         });
+    }
+
+    @Override
+    public Optional<Boolean> serverRestoreAuthorized(){
+        String basicAuthenticationHeader = getBasicAuthenticationHeader();
+        if(basicAuthenticationHeader == null){ // User not signed in
+            return Optional.empty();
+        }
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/server-restore-authorized"))
+                    .header("Authorization", basicAuthenticationHeader)
+                    .POST(HttpRequest.BodyPublishers.noBody())
+                    .build();
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                return Optional.of(false);
+            }
+
+            return Optional.of(OBJECT_MAPPER.readValue(response.body(), Boolean.class));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private <T> T getCall(String relativeUrl, Class<T> clazz) {
