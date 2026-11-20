@@ -333,6 +333,7 @@ public class Messages
                          WidgetProperties_ShowLoLo,
                          WidgetProperties_ShowMinorTicks,
                          WidgetProperties_PerpendicularTickLabels,
+                         WidgetProperties_ShowScaleLabels,
                          WidgetProperties_ShowOK,
                          WidgetProperties_ShowScale,
                          WidgetProperties_ShowUnits,
