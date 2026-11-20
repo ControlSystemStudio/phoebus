@@ -58,6 +58,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -521,7 +522,7 @@ public class SaveAndRestoreService implements WebSocketMessageHandler {
      * @return <code>false</code> if user is not yet authenticated or is not
      * authorized to call restore operations on the server.
      */
-    public boolean serverRestoreAuthorized(){
+    public Optional<Boolean> serverRestoreAuthorized(){
         return saveAndRestoreClient.serverRestoreAuthorized();
     }
 

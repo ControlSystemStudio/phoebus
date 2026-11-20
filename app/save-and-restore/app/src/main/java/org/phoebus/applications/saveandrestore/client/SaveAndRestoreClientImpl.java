@@ -43,6 +43,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -666,10 +667,10 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
     }
 
     @Override
-    public boolean serverRestoreAuthorized(){
+    public Optional<Boolean> serverRestoreAuthorized(){
         String basicAuthenticationHeader = getBasicAuthenticationHeader();
         if(basicAuthenticationHeader == null){ // User not signed in
-            return false;
+            return Optional.empty();
         }
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -679,11 +680,10 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                     .build();
             HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
-                return false;
+                return Optional.of(false);
             }
-            String s = response.body();
-            return OBJECT_MAPPER.readValue(s, new TypeReference<>() {
-            });
+
+            return Optional.of(OBJECT_MAPPER.readValue(response.body(), Boolean.class));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

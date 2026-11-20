@@ -61,19 +61,13 @@ public class Preferences {
      * Default restore mode
      */
     @Preference
-    public static String[] restore_modes;
+    public static String default_restore_mode;
 
     /**
      * Allow empty descriptions / comments in SaR nodes
      */
     @Preference
     public static boolean allow_empty_descriptions;
-
-    /**
-     * Show server side restore option if user is authorized to call the endpoints
-     */
-    @Preference
-    public static boolean show_server_restore;
 
     static {
         AnnotatedPreferences.initialize(Preferences.class, "/save_and_restore_preferences.properties");

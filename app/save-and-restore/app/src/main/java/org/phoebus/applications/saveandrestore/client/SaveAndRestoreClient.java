@@ -36,6 +36,7 @@ import org.phoebus.security.authorization.AuthenticationStatus;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Implementations of this interface shall handle the communication to the save-and-restore service.
@@ -277,8 +278,8 @@ public interface SaveAndRestoreClient {
     List<SnapshotItem> takeSnapshot(String configurationNodeId);
 
     /**
-     * @return <code>false</code> if user is not yet authenticated or is not
-     * authorized to call restore operations on the server.
+     * @return An empty {@link Optional} if user is not yet authenticated, otherwise a value
+     * indicating if user is authorized to call server side restore operations.
      */
-    boolean serverRestoreAuthorized();
+    Optional<Boolean> serverRestoreAuthorized();
 }

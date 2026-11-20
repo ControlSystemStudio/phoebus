@@ -363,6 +363,14 @@ Prior to restore user has the option to:
 
 Restoring from a composite snapshot works in the same manner as the restore operation from a single-snapshot.
 
+The preference setting ``org.phoebus.applications.saveandrestore/default_restore_mode`` selects the preferred
+mode of a restore operation, i.e. to let the Phoebus client perform the restore operation, or to delegate that
+to the service. Note though that a restore operation on the service requires a dedicated user role. In case
+``org.phoebus.applications.saveandrestore/default_restore_mode`` is set to ``SERVICE_RESTORE``,
+but user is not authorized to call the service to perform a restore operation, the UI will indicate it thus:
+
+.. image:: images/restore-mode-invalid.png
+
 Filter PV items in list
 ^^^^^^^^^^^^^^^^^^^^^^^
 The list of items in the snapshot view can be filtered based on the PV name. See screenshot for highlighted UI element

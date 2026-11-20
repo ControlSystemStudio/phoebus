@@ -133,26 +133,11 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                             <Tooltip text="%logActionTooltip" />
                         </tooltip>
                     </CheckBox>
-                  <StackPane GridPane.columnIndex="5" GridPane.rowIndex="2">
-                      <Label fx:id="invalidConfigLabel" text="%restoreSettingsInconsistent" visible="false" StackPane.alignment="CENTER_LEFT">
-                     <StackPane.margin>
-                        <Insets left="8.0" />
-                     </StackPane.margin></Label>
-                      <HBox fx:id="restoreOptions" GridPane.columnIndex="5" GridPane.rowIndex="2">
-                          <RadioButton fx:id="restoreFromClient" text="%restoreFromClient">
-                              <HBox.margin>
-                                  <Insets right="5.0" />
-                              </HBox.margin>
-                          </RadioButton>
-                          <RadioButton fx:id="restoreFromService" text="%restoreFromService" />
-                          <GridPane.margin>
-                              <Insets bottom="5.0" left="5.0" top="5.0" />
-                          </GridPane.margin>
-                     <StackPane.margin>
-                        <Insets bottom="5.0" left="5.0" top="5.0" />
-                     </StackPane.margin>
-                      </HBox>
-                  </StackPane>
+                    <Label fx:id="invalidConfigLabel" text="%restoreSettingsInconsistent" visible="false" GridPane.columnIndex="5" GridPane.rowIndex="2">
+                    <GridPane.margin>
+                        <Insets left="5.0" />
+                    </GridPane.margin>
+                    </Label>
                 </GridPane>
                 <ToolBar fx:id="filterToolbar" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="40.0" prefWidth="1188.0">
                     <CheckBox fx:id="preserveSelectionCheckBox" mnemonicParsing="false" text="%preserveSelection" />
