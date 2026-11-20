@@ -312,6 +312,7 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
     {
         if (ticks instanceof LinearTicks)
             ((LinearTicks) ticks).setLabelFormat(fmt);
+        dirty_ticks = true;
         requestLayout();
     }
 
