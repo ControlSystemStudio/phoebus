@@ -8,7 +8,11 @@
 package org.phoebus.applications.alarm.ui.tree;
 
 import java.text.MessageFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAmount;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,6 +21,7 @@ import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
+import org.phoebus.applications.alarm.model.EnabledState;
 import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
 
@@ -159,30 +164,37 @@ public class AlarmTreeHelper
 	 *                          selection in the alarm tree view.
 	 * @return A {@link TreeNodeInfo} object.
 	 */
-	public static TreeNodeInfo getTreeNodeInfo(List<AlarmTreeItem<?>> items){
+	public static TreeNodeInfo getTreeNodeInfo(List<AlarmTreeItem<?>> items) {
 		Set<AlarmClientLeaf> leaves = getLeafItems(items);
+
 		int disabledIndefinitely = 0;
 		int disabledWithEnableDate = 0;
-		Optional<LocalDateTime> localDateTime = Optional.empty();
-
-		for(AlarmClientLeaf leaf : leaves){
-			if(!leaf.isEnabled()){
-				LocalDateTime enableDate = leaf.getEnabledDate();
-				if(enableDate != null){
-					if(localDateTime.isPresent() && !localDateTime.get().equals(enableDate)){
-						localDateTime = Optional.empty();
-					}
-					else{
-						localDateTime = Optional.of(enableDate);
-					}
-					disabledWithEnableDate++;
-				}
-				else{
-					disabledIndefinitely++;
-				}
+		for (AlarmClientLeaf leaf : leaves) {
+			if (leaf.getEnabled().enabled_date != null) {
+				disabledWithEnableDate++;
+			} else if (!leaf.getEnabled().enabled){
+				disabledIndefinitely++;
 			}
 		}
-		return new TreeNodeInfo(leaves, disabledIndefinitely, disabledWithEnableDate, localDateTime);
+
+		List<EnabledState> uniqueDisabledStates = leaves.stream()
+				.map(AlarmClientLeaf::getEnabled)
+				.filter(state -> !state.enabled)
+				.map(state -> {
+					// For most intents and purposes, we can consider disable times to the minute
+					if (state.enabled_date != null) {
+						return new EnabledState(state.enabled_date.truncatedTo(ChronoUnit.MINUTES));
+					}
+                    return state;
+                })
+				.distinct()
+				.toList();
+		Optional<EnabledState> commonDisableState = Optional.empty();
+		if (uniqueDisabledStates.size() == 1) {
+			commonDisableState = Optional.of(uniqueDisabledStates.getFirst());
+		}
+
+		return new TreeNodeInfo(leaves, disabledIndefinitely, disabledWithEnableDate, commonDisableState);
 	}
 
 	/**
@@ -202,19 +214,35 @@ public class AlarmTreeHelper
 	public static String treeNodeInfoToString(TreeNodeInfo treeNodeInfo){
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append(MessageFormat.format(Messages.totalPVs, treeNodeInfo.leaves().size()));
-		if(treeNodeInfo.disabled() > 0){
+		if(treeNodeInfo.disabled() > 0 && treeNodeInfo.disabledWithEnableDate() == 0){
 			stringBuilder.append(", ").append(MessageFormat.format(Messages.disabledIndefinitely, treeNodeInfo.disabled()));
 		}
 		int disabledWithEnableDate = treeNodeInfo.disabledWithEnableDate();
 		if(disabledWithEnableDate > 0){
 			stringBuilder.append(", ");
-			if(treeNodeInfo.commonEnableDate().isPresent()){
-				stringBuilder.append(MessageFormat.format(Messages.disabledCommonEnableDate, TimestampFormats.SECONDS_FORMAT.format(treeNodeInfo.commonEnableDate().get()), disabledWithEnableDate));
+			if(treeNodeInfo.commonDisableState().isPresent()){
+				stringBuilder.append(MessageFormat.format(
+						Messages.disabledCommonEnableDate,
+						formatEnableDateTime(treeNodeInfo.commonDisableState().get().enabled_date), disabledWithEnableDate
+				));
 			}
 			else{
-				stringBuilder.append(MessageFormat.format(Messages.disabledVaryingEnableDate, disabledWithEnableDate));
+				stringBuilder.append(MessageFormat.format(Messages.disabledVaryingEnableDate, disabledWithEnableDate + treeNodeInfo.disabled()));
 			}
 		}
 		return stringBuilder.toString();
+	}
+
+	public static String formatEnableDateTime(final LocalDateTime dateTime) {
+		final LocalDate date = dateTime.toLocalDate();
+		final LocalDate today = LocalDate.now();
+		final LocalDate tomorrow = today.plusDays(1);
+		if (date.equals(today)) {
+			return Messages.today + " " + dateTime.format(DateTimeFormatter.ofPattern("HH:mm"));
+		}
+		if (date.equals(tomorrow)) {
+			return Messages.tomorrow + " " + dateTime.format(DateTimeFormatter.ofPattern("HH:mm"));
+		}
+		return dateTime.format(TimestampFormats.DATETIME_FORMAT);
 	}
 }

@@ -8,8 +8,8 @@
 package org.phoebus.applications.alarm;
 
 import java.io.File;
-import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.client.IdentificationHelper;
@@ -20,7 +20,7 @@ import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.util.time.SecondsParser;
-import org.phoebus.util.time.TimeParser;
+
 
 /** Common alarm system code
  *  @author Kay Kasemir
@@ -121,10 +121,10 @@ public class AlarmSystem extends AlarmSystemConstants
     /** Enable context menu for adding PVs to alarm configuration */
     @Preference public static boolean enable_add_to_alarm_context_menu;
 
-    /** "Disable until.." shortcuts */
-    @Preference public static String[] shelving_options;
-
     @Preference public static int max_block_ms;
+
+    /** Presets for the re-enable time when disabling an alarm */
+    public static final Map<String, DisableDurationPreset> disable_duration_presets;
 
     /** Macros used in UI display/command/web links */
     public static MacroValueProvider macros;
@@ -146,23 +146,6 @@ public class AlarmSystem extends AlarmSystemConstants
         }
         nag_period_ms = Math.round(Math.max(0, secs) * 1000.0);
 
-        // Check if the provided options can be parsed to avoid later runtime errors
-        final LocalDateTime now = LocalDateTime.now();
-        for (String option : shelving_options)
-        {
-            try
-            {
-                final TemporalAmount amount = TimeParser.parseTemporalAmount(option);
-                final LocalDateTime end = now.plus(amount);
-                if (! end.isAfter(now))
-                    throw new Exception("Invalid 'shelving_options' value '" + option + "'");
-            }
-            catch (Throwable ex)
-            {
-                logger.log(Level.WARNING, "Error in 'shelving_options'", ex);
-            }
-        }
-
         try
         {
             macros = new MacroOrSystemProvider(Macros.fromSimpleSpec(prefs.get("macros")));
@@ -171,6 +154,19 @@ public class AlarmSystem extends AlarmSystemConstants
         {
             logger.log(Level.WARNING, "Invalid macros '" + prefs.get("macros") + "'", ex);
             macros = new MacroOrSystemProvider(new Macros());
+        }
+
+        disable_duration_presets = new LinkedHashMap<>();
+        for (final String preset : prefs.get("disable_duration_presets").split(","))
+        {
+            try
+            {
+                disable_duration_presets.put(preset.strip(), DisableDurationPreset.parse(preset));
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Invalid disable duration preset '" + preset + "'", ex);
+            }
         }
 
         IdentificationHelper.initialize();

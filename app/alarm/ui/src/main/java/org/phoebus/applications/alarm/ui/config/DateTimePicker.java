@@ -9,8 +9,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
+import javafx.beans.NamedArg;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextFormatter;
 import javafx.util.StringConverter;
@@ -39,7 +41,7 @@ public class DateTimePicker extends DatePicker {
 	}
 
 	/** Constructor */
-	public DateTimePicker() {
+	public DateTimePicker(@NamedArg(value = "allowPastDateTimes", defaultValue = "false") final boolean allowPastDateTimes) {
 		getStyleClass().add("datetime-picker");
 		setFormat(DefaultFormat);
 		setConverter(new InternalConverter());
@@ -80,6 +82,15 @@ public class DateTimePicker extends DatePicker {
 				simulateEnterPressed();
 		});
 
+		if (!allowPastDateTimes) {
+			setDayCellFactory(_ -> new DateCell() {
+				@Override
+				public void updateItem(final LocalDate date, final boolean empty) {
+					super.updateItem(date, empty);
+					setDisable(empty || LocalDate.now().isAfter(date));
+				}
+			});
+		}
 	}
 
 	private void simulateEnterPressed() {

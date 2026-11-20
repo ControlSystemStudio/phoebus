@@ -22,6 +22,7 @@ public class Messages
     public static String Annunciator;
     public static String commands;
     public static String configure;
+    public static String custom;
     public static String delayTooltip0;
     public static String delayTooltip1;
     public static String delayTooltip2;
@@ -45,12 +46,13 @@ public class Messages
     public static String indefinitely;
     public static String MenuPath;
     public static String moveItemFailed;
-    public static String promptTitle;
     public static String removeComponentFailed;
     public static String renameItemFailed;
+    public static String selectedDateInThePast;
+    public static String today;
+    public static String tomorrow;
     public static String totalPVs;
     public static String unacknowledgeFailed;
-    public static String withEnableDate;
 
     static
     {

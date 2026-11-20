@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.phoebus.applications.alarm.ui.config.*?>
+
+<VBox spacing="5.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.alarm.ui.config.DisableDialogController">
+    <Label text="%reenableDateTime" />
+    <ScrollPane prefWidth="400.0" prefHeight="200.0" hbarPolicy="NEVER" fitToWidth="true"
+                style="-fx-background-color: transparent; -fx-padding: 0">
+        <GridPane fx:id="disableDurationsBox" hgap="10.0" vgap="5.0">
+        </GridPane>
+    </ScrollPane>
+
+    <DateTimePicker fx:id="enabledDatePicker" allowPastDateTimes="false">
+        <tooltip>
+            <Tooltip text="%dateTimePickerTooltip" />
+        </tooltip>
+    </DateTimePicker>
+</VBox>

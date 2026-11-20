@@ -106,7 +106,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 } else {
                     if (leaf.getEnabled().enabled_date != null) {
                         LocalDateTime enabledDate = leaf.getEnabled().enabled_date;
-                        String enabledDateString = TimestampFormats.SECONDS_FORMAT.format(enabledDate);
+                        String enabledDateString = AlarmTreeHelper.formatEnableDateTime(enabledDate);
                         disabledTimerIndicator.setText("(" + Messages.disabledUntil + " " + enabledDateString + ")");
                     } else {
                         disabledTimerIndicator.setText("(" + Messages.disabled + ")");
