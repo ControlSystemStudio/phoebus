@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.ui.Messages;
@@ -70,20 +71,22 @@ public class MoveTreeItemAction extends MenuItem
 				return;
 			}
 
-    		// Tree view keeps the selection indices, which will point to wrong content
-            // after those items have been removed.
-            node.getSelectionModel().clearSelection();
+			// Tree view keeps the selection indices, which will point to wrong content
+			// after those items have been removed
+			node.getSelectionModel().clearSelection();
 
 			final String new_path = path;
 			// On a background thread, send the item configuration updates for the item to be moved and all its children.
             JobManager.schedule(getText(), monitor ->
             {
 				try {
-					// Move the item.
+					// Add the new item
 					model.sendItemConfigurationUpdate(new_path, item);
-					// Move the item's children.
-					AlarmTreeHelper.rebuildTree(model, item, new_path);
-					// Delete the old item. This deletes the old item's children as well.
+					// ...and rebuild all its children
+					if (item instanceof AlarmClientNode) {
+						AlarmTreeHelper.rebuildTree(model, item, new_path);
+					}
+					// Remove the item and all its children
 					model.removeComponent(item);
 				} catch (Exception e) {
 					ExceptionDetailsErrorDialog.openError(Messages.error,

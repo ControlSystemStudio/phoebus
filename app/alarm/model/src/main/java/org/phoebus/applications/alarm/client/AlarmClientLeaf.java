@@ -52,9 +52,9 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
      *  a detached copy is used to send the request.
      *  @return {@link AlarmClientLeaf} with same configuration, but no parent
      */
-    public AlarmClientLeaf createDetachedCopy()
+    public AlarmClientLeaf createDetachedCopy(final String newName)
     {
-        final AlarmClientLeaf pv = new AlarmClientLeaf(null, getName());
+        final AlarmClientLeaf pv = new AlarmClientLeaf(null, newName);
         pv.setDescription(getDescription());
         pv.setEnabled(getEnabled());
         pv.setLatching(isLatching());
@@ -67,6 +67,14 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
         pv.setCommands(new ArrayList<>(getCommands()));
         pv.setActions(new ArrayList<>(getActions()));
         return pv;
+    }
+
+    /** When requesting a configuration update,
+     *  a detached copy is used to send the request.
+     *  @return {@link AlarmClientLeaf} with same configuration, but no parent
+     */
+    public AlarmClientLeaf createDetachedCopy() {
+        return createDetachedCopy(getName());
     }
 
     /** @return Return description */
