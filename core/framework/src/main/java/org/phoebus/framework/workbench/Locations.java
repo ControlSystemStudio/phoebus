@@ -10,7 +10,10 @@ package org.phoebus.framework.workbench;
 import static org.phoebus.framework.workbench.WorkbenchPreferences.logger;
 
 import java.io.File;
+import java.net.URI;
 import java.util.logging.Level;
+
+import org.phoebus.framework.util.ResourceParser;
 
 /** Information about key locations
  *  @author Kay Kasemir
@@ -57,7 +60,10 @@ public class Locations
             // Determine location of this class
             // During development in the IDE, it's /some/path/phoebus/core/framework/target/classes
             // In the product, it's /some/path/lib/framework*.jar
-            File path = new File(Locations.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            final URI loc = Locations.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+            File path = ResourceParser.getFile(loc);
+            if (path == null)
+                path = new File(loc);
 
             if (path.getName().endsWith(".jar"))
             {   // Move up from jar to /some/path

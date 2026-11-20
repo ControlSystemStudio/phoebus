@@ -365,7 +365,7 @@ public class DisplayEditorInstance implements AppInstance
         // Set input ASAP to prevent opening another instance for same input
         dock_item.setInput(resource);
 
-        final File file = new File(resource);
+        final File file = Objects.requireNonNull(ResourceParser.getFile(resource));
         modification_marker = file.lastModified();
 
         editor_gui.loadModel(file);
