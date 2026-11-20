@@ -136,10 +136,7 @@ class CursorMarker implements Comparable<CursorMarker>
                 final double value = sample.getValue();
                 if (Double.isFinite(value)  &&  axis.getValueRange().contains(value))
                 {
-                    String label = axis.getTicks().formatDetailed(value);
-                    final String units = trace.getUnits();
-                    if (! units.isEmpty())
-                        label += " " + units;
+                    String label = sample.format(axis, trace);
                     final String info = sample.getInfo();
                     if (info != null  &&  info.length() > 0)
                         label += " (" + info + ")";
