@@ -275,8 +275,17 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
 
                 // http://stackoverflow.com/questions/27700006/how-do-you-change-the-background-color-of-a-textfield-without-changing-the-border
                 final WidgetColor back_color = model_widget.propBackgroundColor().getValue();
-                style.append("-fx-control-inner-background: ");
-                JFXUtil.appendWebRGB(style, back_color).append(";");
+                final Color color = JFXUtil.convert(back_color);
+                if (model_widget.propTransparent().getValue() || color.getOpacity() == 0)
+                {
+                    jfx_node.setBackground(null);
+                    style.append("-fx-control-inner-background: transparent;");
+                }
+                else
+                {
+                    style.append("-fx-control-inner-background:");
+                    JFXUtil.appendWebRGB(style, back_color).append(";");
+                }
                 area.setStyle(style.toString());
                 area.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
                 // Alignment (pos) not supported
