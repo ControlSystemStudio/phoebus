@@ -19,6 +19,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import javafx.stage.Window;
@@ -31,6 +32,7 @@ import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
+import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.macros.Macros;
@@ -93,6 +95,18 @@ public class DisplayRuntimeInstance implements AppInstance
     private volatile Optional<DisplayInfo> display_info = Optional.empty();
 
     private DisplayModel active_model;
+
+    /** Job that loads a display, cancelled by a newer load or closing the display. UI thread only */
+    private Job load_job;
+
+    /** Model whose runtime a load job is starting.
+     *  A starting runtime cannot be stopped, so when the display is disposed meanwhile,
+     *  the load job stops the runtime and disposes the model once the start is done.
+     */
+    private final AtomicReference<DisplayModel> starting_model = new AtomicReference<>();
+
+    /** Lets one load job at a time use {@link #starting_model}. Not used on the UI thread */
+    private final Object start_lock = new Object();
 
     /** Toolbar button for zoom */
     private ZoomAction zoom_action;
@@ -329,12 +343,15 @@ public class DisplayRuntimeInstance implements AppInstance
         return display_info.orElse(null);
     }
 
-    /** Load display file, represent it, start runtime
+    /** Load display file, represent it, start runtime.
+     *  A load that is still in progress is cancelled.
      *  @param info Display file to load and represent
      */
     public void loadDisplayFile(final DisplayInfo info)
     {
         DisplayInfo old_info = display_info.orElse(null);
+        // If still loading another display, skip it
+        cancelLoad();
         // If already executing another display, shut it down
         disposeModel();
 
@@ -357,14 +374,15 @@ public class DisplayRuntimeInstance implements AppInstance
         // Note the path & macros, then
         display_info = Optional.of(info);
         // load model off UI thread
-        JobManager.schedule("Load Display", monitor ->
+        load_job = JobManager.schedule("Load Display", monitor ->
         {
             try
             {
                 final DisplayModel model = loadModel(monitor, info);
 
-                final Future<Void> represented = representation.submit(() -> representModel(model));
-                represented.get();
+                final Future<Boolean> represented = representation.submit(() -> representModelUnlessCanceled(monitor, model));
+                if (! Boolean.TRUE.equals(represented.get()))
+                    return;
 
                 if (Boolean.TRUE.equals(auto_size_stage))
                 {
@@ -378,7 +396,8 @@ public class DisplayRuntimeInstance implements AppInstance
                 }
 
                 // Start runtime for the model
-                RuntimeUtil.startRuntime(model);
+                if (! startRuntimeUnlessCanceled(monitor, model))
+                    return;
 
                 logger.log(Level.FINE, "Waiting for representation of model " + info.getPath());
 
@@ -402,6 +421,11 @@ public class DisplayRuntimeInstance implements AppInstance
             }
             catch (Exception ex)
             {
+                if (monitor.isCanceled())
+                {   // Replaced by a newer load or closed: Nothing to report to the user
+                    logger.log(Level.FINE, ex, () -> "Cannot load model from " + info.getPath() + ", which was replaced or closed meanwhile");
+                    return;
+                }
                 logger.log(Level.SEVERE, "Cannot load model from " + info.getPath(), ex);
 
                 final String exception_message;
@@ -479,6 +503,58 @@ public class DisplayRuntimeInstance implements AppInstance
         return null;
     }
 
+    /** Represent a loaded model, unless its load was cancelled. Called on the UI thread, where loads are cancelled
+     *  @param monitor Monitor of the job that loaded the model
+     *  @param model Model to represent
+     *  @return <code>true</code> if represented
+     *  @throws Exception on error
+     */
+    private boolean representModelUnlessCanceled(final JobMonitor monitor, final DisplayModel model) throws Exception
+    {
+        if (monitor.isCanceled())
+        {
+            model.dispose();
+            return false;
+        }
+        representModel(model);
+        return true;
+    }
+
+    /** Start the runtime of a represented model, unless its load was cancelled.
+     *  If the display is disposed while the runtime starts, stop it and dispose the model, see {@link #disposeModel()}
+     *  @param monitor Monitor of the job that loaded the model
+     *  @param model Model to start
+     *  @return <code>true</code> if the runtime was started and the load is still the current one
+     */
+    private boolean startRuntimeUnlessCanceled(final JobMonitor monitor, final DisplayModel model)
+    {
+        synchronized (start_lock)
+        {
+            starting_model.set(model);
+            if (monitor.isCanceled())
+            {   // Disposed before the start. Unless the UI thread did it all, dispose the model
+                if (! starting_model.compareAndSet(model, null))
+                    model.dispose();
+                return false;
+            }
+            RuntimeUtil.startRuntime(model);
+            if (starting_model.compareAndSet(model, null))
+                return ! monitor.isCanceled();
+            // Disposed while starting, left to this job
+            RuntimeUtil.stopRuntime(model);
+            model.dispose();
+            return false;
+        }
+    }
+
+    /** Cancel the load of a display, if one is in progress */
+    private void cancelLoad()
+    {
+        if (load_job != null  &&  ! load_job.getMonitor().isDone())
+            load_job.cancel();
+        load_job = null;
+    }
+
     /** Take note of the currently displayed model
      *
      *  <p>Called by the {@link DockItemRepresentation},
@@ -524,14 +600,19 @@ public class DisplayRuntimeInstance implements AppInstance
         active_model = model;
     }
 
-    /** Stop runtime, dispose representation for current model */
+    /** Stop runtime, dispose representation for current model. Callers first cancel a load, see {@link #cancelLoad()} */
     private void disposeModel()
     {
         final DisplayModel model = active_model;
         active_model = null;
 
-        // Close handler disposes runtime and representation for model
-        if (model != null)
+        if (model == null)
+            return;
+        if (starting_model.compareAndSet(model, null))
+            // The load job is starting the runtime and will then stop it and dispose the model
+            representation.disposeRepresentation(model);
+        else
+            // Close handler disposes runtime and representation for model
             ActionUtil.handleClose(model);
     }
 
@@ -569,6 +650,8 @@ public class DisplayRuntimeInstance implements AppInstance
     /** DockItem closed */
     public void onClosed()
     {
+        // If still loading a display, skip it
+        cancelLoad();
         // Stop runtime, dispose widgets for the model
         disposeModel();
         // Stop representation, so no more widgets can be created in this dock item

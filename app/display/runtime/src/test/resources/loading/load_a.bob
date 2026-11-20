@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display a</name>
+  <width>300</width>
+  <height>100</height>
+  <widget type="textupdate" version="2.0.0">
+    <name>Value</name>
+    <pv_name>sim://ramp(0,10,0.1)load_a</pv_name>
+  </widget>
+</display>
