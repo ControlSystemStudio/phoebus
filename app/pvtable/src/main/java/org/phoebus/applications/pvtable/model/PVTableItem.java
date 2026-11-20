@@ -20,6 +20,7 @@ import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.DisplayProvider;
+import org.epics.vtype.DescriptionProvider;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
 import org.epics.vtype.VBoolean;
@@ -83,9 +84,9 @@ public class PVTableItem
 
     /** Listener to description PV */
     private volatile Disposable desc_flow;
-    
+
     private volatile String[] valueOptions = null;
-    
+
     private static final String DESC_FIELD = "DESC";
     private static final String DOT = ".";
 
@@ -178,7 +179,7 @@ public class PVTableItem
                 // Determine DESC field include dot in case of variable name such as variableEGUName
                 desc_name = name.replace(DOT + fieldVal, DOT + DESC_FIELD);
             }
-            
+
             try
             {
                 final PV new_desc_pv = PVPool.getPV(desc_name);
@@ -200,31 +201,15 @@ public class PVTableItem
             }
         }
     }
-    
+
     private void updateDescription() {
-        if(desc_value == null) {
-            //update description from value or pv
-            VType currentValue = getValue();
-            if(currentValue != null) {
-                String description = null;
-                // DisplayProvider is an optional interface for VType values,
-                // not PVs, but the custum datasource as Muscade happens to implement
-                // DisplayProvider for enum and bool PVs, so check for that here 
-                Display display = currentValue instanceof DisplayProvider ? ((DisplayProvider) currentValue).getDisplay(): null;
-                if(display == null && currentValue instanceof VEnum){
-                    EnumDisplay enumdisplay =  ((VEnum) currentValue).getDisplay();
-                    if(enumdisplay instanceof DisplayProvider){
-                        display = ((DisplayProvider)enumdisplay).getDisplay();
-                    }
-                }
-                if (display != null) {
-                    description = display.getDescription();
-                }
-                desc_value = description != null ? description : null;
-                desc_name = desc_value != null ? "Description of " + name + " PV" : "no description";
-                desc_flow = value_flow;
-            }
-        }
+        desc_value = switch (getValue()) {
+            case VEnum vEnum when vEnum.getDisplay() instanceof DescriptionProvider descriptionProvider -> descriptionProvider.getDescription().orElse("");
+            case DescriptionProvider descriptionProvider -> descriptionProvider.getDescription().orElse("");
+            default -> "";
+        };
+        desc_name = desc_value != null ? "Description of " + name + " PV" : "no description";
+        desc_flow = value_flow;
     }
 
     /** @return <code>true</code> if item is selected to be restored */
@@ -295,7 +280,7 @@ public class PVTableItem
         updateDescription();
         return desc_value == null ? "" : desc_value;
     }
-    
+
     /** @return description pv name **/
     public String getDescriptionName() {
         return desc_name;
@@ -320,7 +305,7 @@ public class PVTableItem
         }
         return valueOptions;
     }
-    
+
     /** @return index in case of Enum value */
     public int getIndex() {
         int index = - 1;
