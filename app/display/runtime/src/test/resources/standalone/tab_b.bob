@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display b</name>
+  <width>300</width>
+  <height>100</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Display b</text>
+  </widget>
+</display>

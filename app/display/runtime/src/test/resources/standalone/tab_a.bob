@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display a</name>
+  <width>300</width>
+  <height>100</height>
+  <widget type="action_button" version="3.0.0">
+    <name>Open b</name>
+    <x>10</x>
+    <y>10</y>
+    <width>120</width>
+    <height>40</height>
+    <actions>
+      <action type="open_display">
+        <file>tab_b.bob</file>
+        <target>tab</target>
+        <description>Open b</description>
+      </action>
+    </actions>
+  </widget>
+</display>
