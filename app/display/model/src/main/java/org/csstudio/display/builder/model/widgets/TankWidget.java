@@ -105,6 +105,13 @@ public class TankWidget extends ScaledPVWidget
     public static final WidgetPropertyDescriptor<Boolean>   propOppositeScaleVisible =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "opposite_scale_visible", Messages.WidgetProperties_OppositeScaleVisible);
 
+    /** 'inverted_scale' &mdash; run the scale top-down (right to left
+     *  when horizontal), with the tank filling from the top.
+     *  A log scale always runs bottom-up.
+     */
+    public static final WidgetPropertyDescriptor<Boolean>   propInvertedScale =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "inverted_scale", Messages.WidgetProperties_InvertedScale);
+
     /** Widget configurator to read legacy *.opi files*/
     private static class CustomConfigurator extends WidgetConfigurator
     {
@@ -171,6 +178,7 @@ public class TankWidget extends ScaledPVWidget
     private volatile WidgetProperty<Boolean> perpendicular_tick_labels;
     private volatile WidgetProperty<Boolean> opposite_scale_visible;
     private volatile WidgetProperty<Boolean> log_scale;
+    private volatile WidgetProperty<Boolean> invertedScale;
     private volatile WidgetProperty<Boolean> horizontal;
     private volatile WidgetProperty<Integer>  border_width_prop;
 
@@ -195,6 +203,7 @@ public class TankWidget extends ScaledPVWidget
         properties.add(show_minor_ticks = propShowMinorTicks.createProperty(this, true));
         properties.add(perpendicular_tick_labels = propPerpendicularTickLabels.createProperty(this, false));
         properties.add(log_scale = propLogscale.createProperty(this, false));
+        properties.add(invertedScale = propInvertedScale.createProperty(this, false));
         properties.add(horizontal = propHorizontal.createProperty(this, false));
         properties.add(border_width_prop = propTankBorderWidth.createProperty(this, 0));
     }
@@ -266,6 +275,12 @@ public class TankWidget extends ScaledPVWidget
     public WidgetProperty<Boolean> propLogScale()
     {
         return log_scale;
+    }
+
+    /** @return 'inverted_scale' property */
+    public WidgetProperty<Boolean> propInvertedScale()
+    {
+        return invertedScale;
     }
 
     /** @return 'horizontal' property */

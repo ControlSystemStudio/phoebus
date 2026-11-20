@@ -252,6 +252,7 @@ public class Messages
                          WidgetProperties_Insets,
                          WidgetProperties_Interactive,
                          WidgetProperties_Interpolation,
+                         WidgetProperties_InvertedScale,
                          WidgetProperties_ItemsFromPV,
                          WidgetProperties_KnobColor,
                          WidgetProperties_KnobPosition,

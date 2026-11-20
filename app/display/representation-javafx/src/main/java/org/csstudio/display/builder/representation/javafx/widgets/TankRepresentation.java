@@ -75,6 +75,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propLimitsFromPV().addUntypedPropertyListener(valueListener);
         model_widget.propMinimum().addUntypedPropertyListener(valueListener);
         model_widget.propMaximum().addUntypedPropertyListener(valueListener);
+        model_widget.propInvertedScale().addUntypedPropertyListener(valueListener);
         model_widget.runtimePropValue().addUntypedPropertyListener(valueListener);
         // Alarm limits; only need re-evaluation when limit properties change.
         // When alarm_limits_from_pv=true, valueChanged() calls applyAlarmLimits() too.
@@ -114,6 +115,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propLimitsFromPV().removePropertyListener(valueListener);
         model_widget.propMinimum().removePropertyListener(valueListener);
         model_widget.propMaximum().removePropertyListener(valueListener);
+        model_widget.propInvertedScale().removePropertyListener(valueListener);
         model_widget.runtimePropValue().removePropertyListener(valueListener);
         model_widget.propShowAlarmLimits().removePropertyListener(limitsListener);
         model_widget.propAlarmLimitsFromPV().removePropertyListener(limitsListener);
@@ -151,7 +153,9 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
                 max_val = display_info.getDisplayRange().getMaximum();
             }
         }
-        tank.setRange(min_val, max_val);
+        // Displays from before 'inverted_scale' invert the scale with minimum > maximum
+        tank.setInverted(model_widget.propInvertedScale().getValue()  ||  min_val > max_val);
+        tank.setRange(Math.min(min_val, max_val), Math.max(min_val, max_val));
 
         // Alarm metadata is embedded in the VType, so re-check it on every update.
         // When using widget-configured limits, limitsChanged() handles updates instead.

@@ -26,8 +26,9 @@
     <width>50</width>
     <height>310</height>
     <limits_from_pv>false</limits_from_pv>
-    <minimum>102.0</minimum>
-    <maximum>-2.0</maximum>
+    <minimum>-2.0</minimum>
+    <maximum>102.0</maximum>
+    <inverted_scale>true</inverted_scale>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label</name>

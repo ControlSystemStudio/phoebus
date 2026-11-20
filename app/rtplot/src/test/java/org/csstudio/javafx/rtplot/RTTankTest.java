@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.csstudio.javafx.rtplot;
 
+import java.awt.Rectangle;
+
 import org.junit.jupiter.api.Test;
 
 import org.phoebus.ui.vtype.ScaleFormat;
@@ -50,6 +52,55 @@ public class RTTankTest
         tank.setRange(100, 100);   // flat
         tank.setRange(100, 0);     // inverted
         tank.setRange(Double.POSITIVE_INFINITY, 100);
+        // Initial range of the scale is unchanged
+        assertThat(tank.getValueRange().getLow(), equalTo(0.0));
+        assertThat(tank.getValueRange().getHigh(), equalTo(10.0));
+    }
+
+    /** An inverted scale runs top-down, except on a log scale */
+    @Test
+    public void testInvertedScale()
+    {
+        final RTTank tank = new RTTank();
+        tank.setRange(1, 100);
+        tank.setInverted(true);
+        assertThat(tank.getValueRange().getLow(), equalTo(100.0));
+        assertThat(tank.getValueRange().getHigh(), equalTo(1.0));
+
+        // Inverted scale keeps the order when the range changes
+        tank.setRange(2, 50);
+        assertThat(tank.getValueRange().getLow(), equalTo(50.0));
+        assertThat(tank.getValueRange().getHigh(), equalTo(2.0));
+
+        tank.setLogScale(true);
+        assertThat(tank.getValueRange().getLow(), equalTo(2.0));
+        assertThat(tank.getValueRange().getHigh(), equalTo(50.0));
+
+        tank.setLogScale(false);
+        assertThat(tank.getValueRange().getLow(), equalTo(50.0));
+        assertThat(tank.getValueRange().getHigh(), equalTo(2.0));
+
+        tank.setInverted(false);
+        assertThat(tank.getValueRange().getLow(), equalTo(2.0));
+        assertThat(tank.getValueRange().getHigh(), equalTo(50.0));
+    }
+
+    /** Values map to pixels bottom-up, or top-down when inverted */
+    @Test
+    public void testDrawnRangeValueToY()
+    {
+        final Rectangle plot = new Rectangle(0, 10, 20, 100);
+        final RTTank.DrawnRange normal = new RTTank.DrawnRange(0, 100, false, true);
+        assertThat(normal.valueToY(plot, 0), equalTo(110));
+        assertThat(normal.valueToY(plot, 25), equalTo(85));
+
+        final RTTank.DrawnRange inverted = new RTTank.DrawnRange(0, 100, false, false);
+        assertThat(inverted.valueToY(plot, 0), equalTo(10));
+        assertThat(inverted.valueToY(plot, 25), equalTo(35));
+
+        final RTTank.DrawnRange log = new RTTank.DrawnRange(1, 100, true, true);
+        assertThat(log.valueToY(plot, 10), equalTo(60));
+        assertThat(log.valueToY(plot, 0), equalTo(-1));
     }
 
     /** setValue should handle NaN and Infinity */
