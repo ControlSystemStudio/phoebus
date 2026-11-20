@@ -14,10 +14,12 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.prefs.Preferences;
 import java.util.regex.Pattern;
 
+import org.csstudio.display.actions.OpenDisplayAction;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
@@ -38,6 +40,9 @@ public class ConverterPreferences
     public static final List<String> paths = new ArrayList<>();
 
     public static volatile File auto_converter_dir;
+
+    /** Target of related displays that EDM opens in a new window */
+    public static OpenDisplayAction.Target related_display_target = OpenDisplayAction.Target.TAB;
     @Preference public static String auto_converter_strip;
 
     private static class FontMapping
@@ -77,6 +82,8 @@ public class ConverterPreferences
                 logger.log(Level.WARNING, "Cannot parse paths from " + edm_paths_config, ex);
             }
 
+        related_display_target = parseRelatedDisplayTarget(prefs.get("related_display_target"));
+
         final String dir = prefs.get("auto_converter_dir").strip();
         if (dir.isEmpty())
             auto_converter_dir = null;
@@ -90,6 +97,22 @@ public class ConverterPreferences
                 auto_converter_dir = null;
                 logger.log(Level.WARNING, "EDM auto_converter_dir " + dir + " does not exist and is thus ignored");
             }
+        }
+    }
+
+    /** @param setting Setting of the related display target, for example "standalone"
+     *  @return Target for that setting, <code>TAB</code> if the setting is not a valid target
+     */
+    static OpenDisplayAction.Target parseRelatedDisplayTarget(final String setting)
+    {
+        try
+        {
+            return OpenDisplayAction.Target.valueOf(setting.strip().toUpperCase(Locale.ROOT));
+        }
+        catch (IllegalArgumentException ex)
+        {
+            logger.log(Level.WARNING, () -> "Unknown related_display_target '" + setting + "', using 'tab'");
+            return OpenDisplayAction.Target.TAB;
         }
     }
 
