@@ -86,6 +86,10 @@ public class DateTimePicker extends DatePicker {
 		getEditor().commitValue();
 	}
 
+	public ObjectProperty<LocalDateTime> dateTimeProperty() {
+		return dateTimeValue;
+	}
+
 	/** @return Time */
 	public LocalDateTime getDateTimeValue() {
 		return dateTimeValue.get();

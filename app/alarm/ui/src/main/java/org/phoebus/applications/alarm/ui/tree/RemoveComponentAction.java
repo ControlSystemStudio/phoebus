@@ -9,7 +9,6 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import java.util.List;
 
-import javafx.application.Platform;
 import javafx.scene.control.*;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -32,7 +31,7 @@ class RemoveComponentAction extends MenuItem
      *  @param model Model where components are to be removed
      *  @param items Items to remove from alarm tree
      */
-    public RemoveComponentAction(final Node node, final AlarmClient model, final List<AlarmTreeItem<?>> items)
+    public RemoveComponentAction(final Node node, final AlarmClient model, final List<AlarmTreeItem<?>> items, final AlarmTreeView alarmTreeView)
     {
         super("Remove Selected Items",
               ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
@@ -61,6 +60,13 @@ class RemoveComponentAction extends MenuItem
             if (dialog.showAndWait().get() != ButtonType.OK)
                 return;
 
+            // HACK: JavaFX's selection model does not enjoy the way that alarm editing works. Consider a scenario
+            // where the user selects an alarm, edits it, and then right clicks and removes it. This will trigger a
+            // deselect and also remove the item from the server, popping up an alert box for the user because there
+            // is no way for AlarmTreeView to distinguish this client deleting items from another client deleting items.
+            // So before deselecting the item, we need to notify alarm tree view that the changes are fine to discard
+            alarmTreeView.closePanel();
+
             // Tree view keeps the selection indices, which will point to wrong content
             // after those items have been removed
             if (node instanceof TreeView<?>)
@@ -73,7 +79,7 @@ class RemoveComponentAction extends MenuItem
                         model.removeComponent(item);
                     } catch (Exception e) {
                         ExceptionDetailsErrorDialog.openError(Messages.error,
-                                Messages.removeComponentFailed,
+                                Messages.removeNodeFailed,
                                 e);
                         // Breaking under the assumption that if one fails, all will fail
                         break;

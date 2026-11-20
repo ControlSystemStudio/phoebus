@@ -29,7 +29,6 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
-import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
@@ -563,11 +562,6 @@ public class AlarmTableUI extends BorderPane
             if (new AlarmContextMenuHelper().addSupportedEntries(table, client, menu, selection))
                 menu_items.add(new SeparatorMenuItem());
 
-            if (AlarmUI.mayConfigure(client)  &&   selection.size() == 1)
-            {
-                menu_items.add(new ConfigureComponentAction(table, client, selection.get(0)));
-                menu_items.add(new SeparatorMenuItem());
-            }
             menu_items.add(new PrintAction(this));
             menu_items.add(new SaveSnapshotAction(table));
 
