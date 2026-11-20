@@ -179,6 +179,9 @@ class StateCell extends TableCell<ScanInfoProxy, ScanState>
                 show(getResume());
                 show(getAbort());
                 break;
+            case Scheduled:
+                show(getAbort());
+                break;
             case Aborted:
             case Failed:
             case Finished:
@@ -201,6 +204,7 @@ class StateCell extends TableCell<ScanInfoProxy, ScanState>
         case Finished:  return Color.DARKGREEN;
         case Paused:    return Color.GRAY;
         case Running:   return Color.GREEN;
+        case Scheduled: return Color.DARKBLUE;
         default:        return Color.BLACK;
         }
     }
