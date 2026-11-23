@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
+import org.phoebus.applications.alarm.client.AlarmClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.ui.javafx.UpdateThrottle;
 
@@ -43,9 +44,9 @@ public class AlarmTableMediator implements AlarmClientListener
 
     // AlarmClientModelListener
     @Override
-    public void serverStateChanged(final boolean alive)
+    public void alarmClientStateChanged(final AlarmClientState oldState, final AlarmClientState state)
     {
-        Platform.runLater(() -> ui.setServerState(alive));
+        Platform.runLater(() -> ui.setAlarmClientState(state));
     }
 
     // AlarmClientModelListener

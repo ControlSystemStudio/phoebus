@@ -12,6 +12,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.Metric;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.record.TimestampType;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -24,7 +26,10 @@ import org.phoebus.util.time.TimestampFormats;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -70,6 +75,11 @@ public class AlarmClient {
     private static final int KAFKA_CLIENT_TIMEOUT = 10;
 
     /**
+     * Time spent in checkUpdates() waiting for, well, updates
+     */
+    private static final Duration POLL_PERIOD = Duration.ofMillis(100);
+
+    /**
      * Alarm tree Paths that have been deleted.
      *
      * <p>Used to distinguish between paths that are not in the alarm tree
@@ -110,15 +120,20 @@ public class AlarmClient {
     private final Thread thread;
 
     /**
-     * Time of last state update (ms),
-     * used to determine timeout
+     * Time of last state update (ms), used to determine when the alarm
+     * server has timed out
      */
     private long last_state_update = 0;
 
     /**
-     * Timeout, not seen any messages from server?
+     * Current state of the alarm client
      */
-    private volatile boolean has_timed_out = false;
+    private volatile AlarmClientState state = AlarmClientState.LOADING;
+
+    /**
+     * The time (unix milliseconds) at which {@link run} was called
+     */
+    private long startupTime;
 
     /**
      * @param server                Kafka Server host:port
@@ -224,49 +239,118 @@ public class AlarmClient {
             final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + root.getPathName(), json);
             producer.send(record);
         } catch (final Exception ex) {
-            logger.log(Level.WARNING, "Cannot set mode for " + root + " to " + cmd, ex);
+            logger.log(Level.WARNING, "Cannot set notify for " + root + " to " + cmd, ex);
             throw ex;
         }
     }
 
     /**
-     * Background thread loop that checks for alarm tree updates
+     * Main loop which polls and processes updates from Kafka
      */
     private void run() {
-        // Send an initial "no server" notification,
-        // to be cleared once we receive data from server.
-        checkServerState();
+        startupTime = System.currentTimeMillis();
+        setState(AlarmClientState.CONNECTING); // Ensure listeners are notified of initial CONNECTING state
         try {
             while (running.get()) {
-                checkUpdates();
-                checkServerState();
+                final ConsumerRecords<String, String> records = consumer.poll(POLL_PERIOD);
+                for (final ConsumerRecord<String, String> record : records) {
+                    handleUpdate(record);
+                }
+                checkState();
             }
         } catch (final Throwable ex) {
-            if (running.get())
+            if (running.get()) {
+                setState(AlarmClientState.CLIENT_ERROR);
                 logger.log(Level.SEVERE, "Alarm client model error", ex);
-            // else: Intended shutdown
+            } else {
+                setState(AlarmClientState.CLIENT_SHUT_DOWN);
+                logger.log(Level.INFO, "Alarm client has shut down");
+            }
         } finally {
             consumer.close();
             producer.close();
         }
     }
 
-    /**
-     * Time spent in checkUpdates() waiting for, well, updates
-     */
-    private static final Duration POLL_PERIOD = Duration.ofMillis(100);
-
-    /**
-     * Perform one check for updates
-     */
-    private void checkUpdates() {
-        // Check for messages, with timeout.
-        // TODO Because of Kafka bug, this will hang if Kafka isn't running.
-        // Fixed according to https://issues.apache.org/jira/browse/KAFKA-1894 ,
-        // but update to kafka-client 1.1.1 (latest in July 2018) makes no difference.
-        final ConsumerRecords<String, String> records = consumer.poll(POLL_PERIOD);
-        for (final ConsumerRecord<String, String> record : records)
-            handleUpdate(record);
+    private void checkState() {
+        switch (state) {
+            case CONNECTING -> {
+                if (System.currentTimeMillis() - startupTime > AlarmSystem.kafka_connection_timeout_seconds * 1000.0) {
+                    // We use the heartbeat metric to determine whether the Kafka consumer
+                    // is still connected. Unfortunately, until the consumer has connected
+                    // (and for a short time after), this metric always returns -1,
+                    // so we have to use our own logic to determine when the initial
+                    // connection attempt has timed out.
+                    setState(AlarmClientState.NO_INITIAL_KAFKA_CONNECTION);
+                } else if (!consumer.assignment().isEmpty()) {
+                    // Once the consumer has been assigned partitions, we can be sure it has
+                    // managed to establish contact with the controller and transition to the
+                    // loading state. (Ideally we would use the heartbeat but again this returns
+                    // -1 for a short time after connection has been established, so it's not a
+                    // great metric)
+                    setState(AlarmClientState.LOADING);
+                }
+            }
+            case NO_INITIAL_KAFKA_CONNECTION -> {
+                // Note: It might take a few moments for the first heartbeat after a new connection,
+                // so we may end up processing messages while still in NO_INIIAL_KAFKA_CONNECTION
+                final long secondsSinceLastHeartbeat = getSecondSinceLastConsumerHeartbeat();
+                if (secondsSinceLastHeartbeat != -1 && secondsSinceLastHeartbeat <= AlarmSystem.kafka_connection_timeout_seconds) {
+                    setState(AlarmClientState.LOADING);
+                }
+            }
+            case NO_KAFKA_CONNECTION -> {
+                // Note: It might take a few moments for the first heartbeat after a new
+                // connection, so we may end up processing messages while still in NO_KAFKA_CONNECTION
+                final long secondsSinceLastHeartbeat = getSecondSinceLastConsumerHeartbeat();
+                if (secondsSinceLastHeartbeat != -1 && secondsSinceLastHeartbeat <= AlarmSystem.kafka_connection_timeout_seconds) {
+                    setState(AlarmClientState.CONNECTED);
+                }
+            }
+            case LOADING -> {
+                if (getSecondSinceLastConsumerHeartbeat() > AlarmSystem.kafka_connection_timeout_seconds) {
+                    setState(AlarmClientState.NO_INITIAL_KAFKA_CONNECTION);
+                } else {
+                    // Lag is just how many messages still need to be polled for us to catch up
+                    // We check across all partitions because of course we need to be caught
+                    // up on all partitions.
+                    //
+                    // If no partition has been assigned yet, this means the consumer is still
+                    // waiting for an assignment and will not return any records yet, so we need
+                    // to wait until the consumer has been assigned partitions.
+                    boolean caughtUp = !consumer.assignment().isEmpty();
+                    for (final TopicPartition partition : consumer.assignment()) {
+                        final OptionalLong lag = consumer.currentLag(partition);
+                        // From Kafka docs - currentLag can be empty if the lag is not known for
+                        // whatever reason - if this happens we likely just need to wait until it
+                        // is known
+                        if (lag.isEmpty() || lag.getAsLong() != 0) {
+                            caughtUp = false;
+                        }
+                    }
+                    if (caughtUp) {
+                        setState(AlarmClientState.CONNECTED);
+                    }
+                }
+            }
+            case CONNECTED -> {
+                final long now = System.currentTimeMillis();
+                if (getSecondSinceLastConsumerHeartbeat() > AlarmSystem.kafka_connection_timeout_seconds) {
+                    setState(AlarmClientState.NO_KAFKA_CONNECTION);
+                } else if (now - last_state_update > AlarmSystem.idle_timeout_ms * 3) {
+                    setState(AlarmClientState.NO_ALARMSERVER_CONNECTION);
+                }
+            }
+            case NO_ALARMSERVER_CONNECTION -> {
+                final long now = System.currentTimeMillis();
+                if (getSecondSinceLastConsumerHeartbeat() > AlarmSystem.kafka_connection_timeout_seconds) {
+                    setState(AlarmClientState.NO_KAFKA_CONNECTION);
+                } else if (now - last_state_update <= AlarmSystem.idle_timeout_ms * 3) {
+                    setState(AlarmClientState.CONNECTED);
+                }
+            }
+            case CLIENT_ERROR, CLIENT_SHUT_DOWN -> throw new IllegalStateException("Alarm client is attempting to process updates after it has shut down");
+        }
     }
 
     /**
@@ -570,31 +654,6 @@ public class AlarmClient {
     }
 
     /**
-     * @return <code>true</code> if connected to server, else updates have timed out
-     */
-    public boolean isServerAlive() {
-        return !has_timed_out;
-    }
-
-    /**
-     * Check if there have been any messages from server
-     */
-    private void checkServerState() {
-        final long now = System.currentTimeMillis();
-        if (now - last_state_update > AlarmSystem.idle_timeout_ms * 3) {
-            if (!has_timed_out) {
-                has_timed_out = true;
-                for (final AlarmClientListener listener : listeners)
-                    listener.serverStateChanged(false);
-            }
-        } else if (has_timed_out) {
-            has_timed_out = false;
-            for (final AlarmClientListener listener : listeners)
-                listener.serverStateChanged(true);
-        }
-    }
-
-    /**
      * Stop client
      */
     public void shutdown() {
@@ -607,5 +666,48 @@ public class AlarmClient {
         }
         logger.log(Level.INFO, () -> thread.getName() + " shut down");
 
+    }
+
+    public AlarmClientState getState() {
+        return state;
+    }
+
+    /**
+     * Updates the current state and notifies all listeners
+     */
+    private void setState(final AlarmClientState newState) {
+        if (state != newState) {
+            final AlarmClientState oldState = state;
+            state = newState;
+            for (final AlarmClientListener listener : listeners) {
+                listener.alarmClientStateChanged(oldState, newState);
+            }
+        }
+    }
+
+    /**
+     * Queries the Kafka consumer to get how many seconds ago the last heartbeat was
+     *
+     * See https://chrzaszcz.dev/2019/06/kafka-heartbeat-thread/ and https://docs.confluent.io/platform/current/kafka/consumer-metrics.html#join-total
+     */
+    private long getSecondSinceLastConsumerHeartbeat() {
+        final Optional<Object> secondsSinceLastConsumerHeartbeat = consumer.metrics()
+                .entrySet()
+                .stream()
+                .filter(e -> e.getKey().name().equals("last-heartbeat-seconds-ago"))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .map(Metric::metricValue);
+        if (secondsSinceLastConsumerHeartbeat.isPresent() && secondsSinceLastConsumerHeartbeat.get() instanceof final Double value) {
+            return Math.round(value);
+        }
+        // I don't think this should ever not be present, but in the event it is we prefer to
+        // progress the state rather than leave the client believing there is no Kafka connection.
+        // Even though there may not actually be a connection, in the event it isn't and
+        // something else has caused this to return empty, the alarm tree requires us to reach
+        // the LOADING state for the alarm tree to display its contents. So it's safer to fail
+        // like this rather than risk breaking the alarm tree completely.
+        logger.log(Level.WARNING, "Kafka consumer did not have metric last-heartbeat-seconds-ago; ignoring Kafka connectivity check");
+        return 0;
     }
 }

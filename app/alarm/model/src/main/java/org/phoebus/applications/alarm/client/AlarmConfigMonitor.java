@@ -46,7 +46,7 @@ public class AlarmConfigMonitor
     private final AlarmClientListener config_listener = new AlarmClientListener()
     {
         @Override
-        public void serverStateChanged(final boolean alive)
+        public void alarmClientStateChanged(final AlarmClientState oldState, final AlarmClientState state)
         {
             //NOP
         }

@@ -18,24 +18,22 @@ import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.scene.control.TableColumnBase;
 import javafx.scene.image.Image;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
-import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.application.TableHelper;
@@ -59,7 +57,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -80,7 +77,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
+
 
 /** Alarm Table UI
  *
@@ -122,7 +119,7 @@ public class AlarmTableUI extends BorderPane
 
     final TextField search = new ClearingTextField();
 
-    private final Label no_server = AlarmUI.createNoServerLabel();
+    private final Label alarm_client_state_label = AlarmUI.createAlarmClientStateLabel();
 
     private final Button server_mode = new Button();
 
@@ -370,22 +367,16 @@ public class AlarmTableUI extends BorderPane
         search.textProperty().addListener(prop -> selectRows());
 
     	if (AlarmSystem.disable_notify_visible)
-    	    return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, server_notify, acknowledge, unacknowledge, search);
+    	    return new ToolBar(active_count,ToolbarHelper.createStrut(), alarm_client_state_label, ToolbarHelper.createSpring(), server_mode, server_notify, acknowledge, unacknowledge, search);
 
-    	return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, acknowledge, unacknowledge, search);
+    	return new ToolBar(active_count, ToolbarHelper.createStrut(), alarm_client_state_label, ToolbarHelper.createSpring(), server_mode, acknowledge, unacknowledge, search);
     }
 
-    /** Show if connected to server or not
-     *  @param alive Is server alive?
-     */
-    void setServerState(final boolean alive)
+    /** Show state of alarm client */
+    void setAlarmClientState(final AlarmClientState state)
     {
-        final ObservableList<Node> items = toolbar.getItems();
-        items.remove(no_server);
-        if (! alive)
-            // Place to the left of spring, maint, ack, unack, filter,
-            // i.e. right of "active alarms" and optional AlarmConfigSelector
-            items.add(items.size() - 5, no_server);
+        alarm_client_state_label.setBackground(AlarmUI.getAlarmClientStateBackground(state));
+        alarm_client_state_label.setText(state.getDisplayName());
     }
 
     void setMaintenanceMode(final boolean maintenance_mode)

@@ -14,8 +14,11 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
  */
 public interface AlarmClientListener
 {
-    /** @param alive Is server alive, or has it timed out? */
-    void serverStateChanged(boolean alive);
+    /**
+     * @param oldState State of the alarm client before it was updated
+     * @param state New (current) state of the alarm client
+     */
+    void alarmClientStateChanged(AlarmClientState oldState, AlarmClientState state);
 
     /** @param maintenance_mode Is the server in 'maintenance' mode? Else 'normal' */
     void serverModeChanged(boolean maintenance_mode);
