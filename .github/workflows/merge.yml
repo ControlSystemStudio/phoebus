@@ -18,11 +18,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest]
     uses: ./.github/workflows/_build.yml
     with:
       os: ${{ matrix.os }}
       upload-artifacts: true
+      # Linux aarch64 is not yet a supported platform; report but tolerate failures
+      allow-failure: ${{ startsWith(matrix.os, 'ubuntu-') && endsWith(matrix.os, '-arm') }}
   unit-test:
     uses: ./.github/workflows/_unit-test.yml
   ui-test:
