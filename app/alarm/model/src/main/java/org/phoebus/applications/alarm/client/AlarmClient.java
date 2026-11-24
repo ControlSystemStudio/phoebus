@@ -272,43 +272,49 @@ public class AlarmClient {
         }
     }
 
+    /**
+     * Updates the state field to reflect the current state of the model based largely
+     * on the Kafka consumer and various timeouts.
+     */
     private void checkState() {
+        // Until the first heartbeat arrives, getSecondSinceLastConsumerHeartbeat will return -1.
+        // The first heartbeat can sometimes only arrive after the first message. Therefore,
+        // until the first heartbeat arrives (i.e. while secondsSinceLastHeartbeat == -1), we
+        // simply check how long it's been since the model started and use that to determine
+        // whether the connection to Kafka has timed out.
+        final long secondsSinceLastHeartbeat = getSecondSinceLastConsumerHeartbeat();
+        final boolean isKafkaTimedOut = secondsSinceLastHeartbeat == -1
+                ? System.currentTimeMillis() - startupTime > AlarmSystem.kafka_connection_timeout_seconds * 1000.0
+                : secondsSinceLastHeartbeat > AlarmSystem.kafka_connection_timeout_seconds;
+
+        // Note: It might take a few moments for the first heartbeat after a new connection,
+        // so we may end up processing messages while still in a 'no connection' state
+        final boolean isKafkaConnected = secondsSinceLastHeartbeat != -1
+                && secondsSinceLastHeartbeat <= AlarmSystem.kafka_connection_timeout_seconds;
+
         switch (state) {
             case CONNECTING -> {
-                if (System.currentTimeMillis() - startupTime > AlarmSystem.kafka_connection_timeout_seconds * 1000.0) {
-                    // We use the heartbeat metric to determine whether the Kafka consumer
-                    // is still connected. Unfortunately, until the consumer has connected
-                    // (and for a short time after), this metric always returns -1,
-                    // so we have to use our own logic to determine when the initial
-                    // connection attempt has timed out.
+                if (isKafkaTimedOut) {
                     setState(AlarmClientState.NO_INITIAL_KAFKA_CONNECTION);
                 } else if (!consumer.assignment().isEmpty()) {
                     // Once the consumer has been assigned partitions, we can be sure it has
                     // managed to establish contact with the controller and transition to the
-                    // loading state. (Ideally we would use the heartbeat but again this returns
-                    // -1 for a short time after connection has been established, so it's not a
-                    // great metric)
+                    // loading state.
                     setState(AlarmClientState.LOADING);
                 }
             }
             case NO_INITIAL_KAFKA_CONNECTION -> {
-                // Note: It might take a few moments for the first heartbeat after a new connection,
-                // so we may end up processing messages while still in NO_INIIAL_KAFKA_CONNECTION
-                final long secondsSinceLastHeartbeat = getSecondSinceLastConsumerHeartbeat();
-                if (secondsSinceLastHeartbeat != -1 && secondsSinceLastHeartbeat <= AlarmSystem.kafka_connection_timeout_seconds) {
+                if (isKafkaConnected) {
                     setState(AlarmClientState.LOADING);
                 }
             }
             case NO_KAFKA_CONNECTION -> {
-                // Note: It might take a few moments for the first heartbeat after a new
-                // connection, so we may end up processing messages while still in NO_KAFKA_CONNECTION
-                final long secondsSinceLastHeartbeat = getSecondSinceLastConsumerHeartbeat();
-                if (secondsSinceLastHeartbeat != -1 && secondsSinceLastHeartbeat <= AlarmSystem.kafka_connection_timeout_seconds) {
+                if (isKafkaConnected) {
                     setState(AlarmClientState.CONNECTED);
                 }
             }
             case LOADING -> {
-                if (getSecondSinceLastConsumerHeartbeat() > AlarmSystem.kafka_connection_timeout_seconds) {
+                if (isKafkaTimedOut) {
                     setState(AlarmClientState.NO_INITIAL_KAFKA_CONNECTION);
                 } else {
                     // Lag is just how many messages still need to be polled for us to catch up
@@ -317,7 +323,9 @@ public class AlarmClient {
                     //
                     // If no partition has been assigned yet, this means the consumer is still
                     // waiting for an assignment and will not return any records yet, so we need
-                    // to wait until the consumer has been assigned partitions.
+                    // to wait until the consumer has been assigned partitions. (This should not
+                    // happen in practice due to the state machine design but is here just in
+                    // case)
                     boolean caughtUp = !consumer.assignment().isEmpty();
                     for (final TopicPartition partition : consumer.assignment()) {
                         final OptionalLong lag = consumer.currentLag(partition);
@@ -334,18 +342,16 @@ public class AlarmClient {
                 }
             }
             case CONNECTED -> {
-                final long now = System.currentTimeMillis();
-                if (getSecondSinceLastConsumerHeartbeat() > AlarmSystem.kafka_connection_timeout_seconds) {
+                if (isKafkaTimedOut) {
                     setState(AlarmClientState.NO_KAFKA_CONNECTION);
-                } else if (now - last_state_update > AlarmSystem.idle_timeout_ms * 3) {
+                } else if (System.currentTimeMillis() - last_state_update > AlarmSystem.idle_timeout_ms * 3) {
                     setState(AlarmClientState.NO_ALARMSERVER_CONNECTION);
                 }
             }
             case NO_ALARMSERVER_CONNECTION -> {
-                final long now = System.currentTimeMillis();
-                if (getSecondSinceLastConsumerHeartbeat() > AlarmSystem.kafka_connection_timeout_seconds) {
+                if (isKafkaTimedOut) {
                     setState(AlarmClientState.NO_KAFKA_CONNECTION);
-                } else if (now - last_state_update <= AlarmSystem.idle_timeout_ms * 3) {
+                } else if (System.currentTimeMillis() - last_state_update <= AlarmSystem.idle_timeout_ms * 3) {
                     setState(AlarmClientState.CONNECTED);
                 }
             }
