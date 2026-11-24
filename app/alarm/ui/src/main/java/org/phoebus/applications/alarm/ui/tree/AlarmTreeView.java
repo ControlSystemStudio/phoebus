@@ -85,22 +85,22 @@ import javafx.scene.layout.BorderPane;
  *  exception to this is itemUpdated, which adds to a queue of
  *  items to be updated which is then regularly processed.
  *
- * When the tree is loading, we wait until we have caught up to all
- * the incoming updates from Kafka before rendering the tree. This
- * is primarily to avoid 2 issues: firstly, the tree can be slow to
- * render due to how many updates are occuring especially if
- * displaying via a remote desktop (ssh-X). Secondly, the way the
- * tree loads can be visually confusing due to the order of the
- * messages from Kafka not necessarily being a logical order.
+ *  <p>When the tree is loading, we wait until we have caught up to all
+ *  the incoming updates from Kafka before rendering the tree. This
+ *  is primarily to avoid 2 issues: firstly, the tree can be slow to
+ *  render due to how many updates are occuring especially if
+ *  displaying via a remote desktop (ssh-X). Secondly, the way the
+ *  tree loads can be visually confusing due to the order of the
+ *  messages from Kafka not necessarily being a logical order.
  *
- * The alarm tree view thus starts in stages:
- * 1) Register model listener
- * 2) Wait for model to receive the bulk of initial additions and
- *    removals (loading state). Add/remove/update listener methods
- *    do nothing while the model is in the loading state
- * 3) Render the initial model to the UI
- * 4) The add/remove/update listeners now handle incoming changes
- *    and update the UI accordingly
+ *  <p>The alarm tree view thus starts in stages:
+ *  1) Register model listener
+ *  2) Wait for model to receive the bulk of initial additions and
+ *     removals (loading state) - add/remove/update listener methods
+ *     do nothing while the model is in the loading state
+ *  3) Render the initial model to the UI
+ *  4) The add/remove/update listeners now handle incoming changes
+ *     and update the UI accordingly
  *
  *  @author Kay Kasemir
  */
