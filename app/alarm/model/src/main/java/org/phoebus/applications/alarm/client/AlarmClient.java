@@ -329,11 +329,13 @@ public class AlarmClient {
                     boolean caughtUp = !consumer.assignment().isEmpty();
                     for (final TopicPartition partition : consumer.assignment()) {
                         final OptionalLong lag = consumer.currentLag(partition);
-                        // From Kafka docs - currentLag can be empty if the lag is not known for
-                        // whatever reason - if this happens we likely just need to wait until it
-                        // is known
+                        // From Kafka docs - currentLag can be empty if the lag is not known due
+                        // to the client not having the required data yet. If this happens, the
+                        // client will start a request to obtain said data from Kafka in the
+                        // background.
                         if (lag.isEmpty() || lag.getAsLong() != 0) {
                             caughtUp = false;
+                            break;
                         }
                     }
                     if (caughtUp) {
