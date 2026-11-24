@@ -105,6 +105,8 @@ public class Messages
     public static String removeNodeFailed;
     public static String renameItemFailed;
     public static String saveChanges;
+    public static String search;
+    public static String searchByPv;
     public static String totalPVs;
     public static String unacknowledgeFailed;
     public static String updateAlarmItemConfig;
