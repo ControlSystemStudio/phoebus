@@ -63,6 +63,9 @@ public class AlarmSystem extends AlarmSystemConstants
     /** Font size for the alarm area view */
     @Preference public static int alarm_area_font_size;
 
+    /** Font size for the alarm table view */
+    @Preference public static int alarm_table_font_size;
+
     /** Limit for the number of context menu items */
     @Preference public static int alarm_menu_max_items;
 

@@ -18,6 +18,6 @@ public class DiagMenuEntry implements MenuEntry {
 
     @Override
     public String getMenuPath() {
-        return "Debug";
+        return Messages.MenuPath;
     }
 }

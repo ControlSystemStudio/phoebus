@@ -6,6 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 package org.csstudio.display.builder.editor.properties;
+import org.csstudio.display.builder.model.properties.HashPasswordProperty;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -544,6 +545,31 @@ public class PropertyPanelSection extends GridPane {
             points_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(points_field, new Tooltip(new_value.size() + " Points" + possiblyInformativeTooltip(property))));
 
             field = points_field;
+        }
+        else if (property instanceof HashPasswordProperty) {
+            final Button hashButton = new Button(Messages.HashPassword_button);
+            hashButton.setMnemonicParsing(false);
+            hashButton.setMaxWidth(Double.MAX_VALUE);
+
+            hashButton.setOnAction(event -> {
+                final WidgetProperty<String> passwordProperty =
+                        (WidgetProperty<String>) widget.getProperty("password");
+
+                if (passwordProperty == null)
+                    return;
+
+                final String password = passwordProperty.getValue();
+
+                if (password == null || password.isEmpty())
+                    return;
+
+                undo.execute(new SetMacroizedWidgetPropertyAction(
+                        (MacroizedWidgetProperty<String>) passwordProperty,
+                        HashPasswordProperty.crypt(password)
+                ));
+            });
+
+            field = hashButton;
         }
         return field;
     }

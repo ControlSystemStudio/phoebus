@@ -82,7 +82,6 @@ import org.phoebus.ui.spi.ContextMenuEntry;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -268,9 +267,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         lastModifiedColumn.setCellFactory(d -> new NodeLastUpdatedTreeTableCell(this));
         lastModifiedColumn.setCellValueFactory(n -> new ReadOnlyObjectWrapper<>(n.getValue().getValue()));
+        lastModifiedColumn.setComparator(Comparator.comparing(Node::getLastModified));
 
         userColumn.setCellFactory(d -> new NodeUserTreeTableCell(this));
         userColumn.setCellValueFactory(n -> new ReadOnlyObjectWrapper<>(n.getValue().getValue()));
+        userColumn.setComparator(Comparator.comparing(Node::getUserName));
 
         treeTableViewPane.disableProperty().bind(disabledUi);
         progressIndicator.visibleProperty().bind(disabledUi);
@@ -430,7 +431,18 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * @param targetItem {@link TreeItem<Node>} on which the operation is performed.
      */
     protected void expandTreeNode(TreeItem<Node> targetItem) {
-        List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
+        List<Node> childNodes;
+        if(targetItem.getValue().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+            try {
+                childNodes = saveAndRestoreService.getCompositeSnapshotNodes(targetItem.getValue().getUniqueId());
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError(treeTableView, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+                return;
+            }
+        }
+        else{
+            childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
+        }
         List<TreeItem<Node>> list =
                 childNodes.stream().map(this::createTreeItem).toList();
         targetItem.getChildren().setAll(list);
@@ -745,7 +757,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         return new TreeItem<>(node) {
             @Override
             public boolean isLeaf() {
-                return node.getNodeType().equals(NodeType.SNAPSHOT) || node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT);
+                return node.getNodeType().equals(NodeType.SNAPSHOT);
             }
         };
     }

@@ -6,7 +6,7 @@ import org.phoebus.framework.spi.AppInstance;
 @SuppressWarnings("nls")
 public class DiagApp implements AppDescriptor {
 
-    static final String NAME = "Phoebus Diagnostics";
+    static final String NAME = Messages.PhoebusDiagnostics;
 
     @Override
     public String getName() {

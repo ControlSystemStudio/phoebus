@@ -128,3 +128,6 @@ docs/source/_ext/**/*.pyc
 # Ignore pip installation metadata
 docs/phoebus_docs.egg-info/
 *.pyc
+
+# Ignore vscode configuration settings
+.vscode/*

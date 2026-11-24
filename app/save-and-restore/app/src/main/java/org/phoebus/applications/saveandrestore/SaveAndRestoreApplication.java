@@ -31,7 +31,7 @@ import java.net.URI;
 public class SaveAndRestoreApplication implements AppResourceDescriptor {
 
     public static final String NAME = "saveandrestore";
-    public static final String DISPLAY_NAME = "Save And Restore";
+    public static final String DISPLAY_NAME = Messages.SaveAndRestore;
 
     /**
      * Custom MIME type definition for the purpose of drag-n-drop in the

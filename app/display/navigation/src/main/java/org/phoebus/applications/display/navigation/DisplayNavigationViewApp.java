@@ -15,7 +15,7 @@ public class DisplayNavigationViewApp implements AppResourceDescriptor {
 
     static final Logger logger = Logger.getLogger(DisplayNavigationViewApp.class.getName());
     public static final String NAME = "display_nav_view";
-    public static final String DISPLAYNAME = "Display Navigation View";
+    public static final String DISPLAYNAME = Messages.DisplayNavigationView;
 
     static final Image icon = ImageCache.getImage(DisplayNavigationViewApp.class, "/icons/navigation-tree-16.png");
 
@@ -24,7 +24,7 @@ public class DisplayNavigationViewApp implements AppResourceDescriptor {
     {
         logger.info("Loading " + DISPLAYNAME);
     }
-    
+
     @Override
     public String getName()
     {

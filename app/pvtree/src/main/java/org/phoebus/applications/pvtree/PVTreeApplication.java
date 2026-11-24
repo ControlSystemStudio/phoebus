@@ -28,7 +28,7 @@ public class PVTreeApplication implements AppResourceDescriptor
 
     public static final String NAME = "pv_tree";
 
-    public static final String DISPLAY_NAME = "PV Tree";
+    public static final String DISPLAY_NAME = Messages.PVTree;
 
     @Override
     public String getName()

@@ -10,9 +10,9 @@ package org.phoebus.logbook.olog.ui.menu;
 import javafx.scene.image.Image;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.LogbookPreferences;
-import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.spi.MenuEntry;
+import org.phoebus.logbook.olog.ui.Messages;
 
 /**
  * MenuEntry for sending a log book entry outside of a context menu.
@@ -41,7 +41,7 @@ public class SendToLogBookMenuEntry implements MenuEntry
     @Override
     public String getMenuPath()
     {
-        return "Utility";
+        return Messages.MenuPath;
     }
 
     @Override

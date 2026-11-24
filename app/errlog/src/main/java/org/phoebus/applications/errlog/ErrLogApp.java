@@ -21,7 +21,7 @@ import org.phoebus.framework.spi.AppInstance;
 public class ErrLogApp implements AppDescriptor
 {
     static final String NAME = "errlog";
-    static final String DISPLAY_NAME = "Error Log";
+    static final String DISPLAY_NAME = Messages.ErrorLog;
 
     @Override
     public String getName()

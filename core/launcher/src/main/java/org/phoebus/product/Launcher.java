@@ -109,6 +109,7 @@ public class Launcher {
         // Handle arguments, potentially not even starting the UI
         final Iterator<String> iter = args.iterator();
         int port = -1;
+        boolean forceStart = false;
         try {
             while (iter.hasNext()) {
                 final String cmd = iter.next();
@@ -132,6 +133,9 @@ public class Launcher {
                     final String filename = iter.next();
                     iter.remove();
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
+                } else if (cmd.equals("-force_start")) {
+                    iter.remove();
+                    forceStart = true;
                 } else if (cmd.equals("-settings")) {
                     if (!iter.hasNext())
                         throw new Exception("Missing -settings file name");
@@ -140,10 +144,18 @@ public class Launcher {
                     iter.remove();
 
                     logger.info("Loading settings from " + location);
-                    if (location.endsWith(".xml"))
-                        Preferences.importPreferences(new FileInputStream(location));
-                    else
-                        PropertyPreferenceLoader.load(location);
+                    try {
+                        if (location.endsWith(".xml"))
+                            Preferences.importPreferences(new FileInputStream(location));
+                        else
+                            PropertyPreferenceLoader.load(location);
+                    } catch (Exception e) {
+                        if (forceStart) {
+                            logger.log(Level.SEVERE, "Failed to load settings from " + location, e);
+                        } else {
+                            throw e;
+                        }
+                    }
 
                 } else if (cmd.equals("-export_settings")) {
                     if (!iter.hasNext())
@@ -237,6 +249,7 @@ public class Launcher {
         System.out.println("-nosplash                               -  Suppress the splash screen");
         System.out.println("-launch_error_dialog                    -  Shows dialog if launch fails. Must be first program argument.");
         System.out.println("-settings settings.xml                  -  Import settings from file, either exported XML or property file format");
+        System.out.println("-force_start                            -  Start even if the -settings file does not exist. Must be set before -settings.");
         System.out.println("-export_settings settings.xml           -  Export settings to file");
         System.out.println("-logging logging.properties             -  Load log settings");
         System.out.println("-list                                   -  List available application features");

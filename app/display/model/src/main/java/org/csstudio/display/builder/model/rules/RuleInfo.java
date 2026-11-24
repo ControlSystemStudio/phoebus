@@ -13,6 +13,7 @@ import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.properties.MacrosWidgetProperty;
 import org.csstudio.display.builder.model.properties.ActionsWidgetProperty;
 import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
+import org.csstudio.display.builder.model.properties.HashPasswordProperty;
 import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.model.properties.ScriptsWidgetProperty;
 
@@ -213,7 +214,8 @@ public class RuleInfo {
             if ((prop instanceof MacrosWidgetProperty) ||
                     (prop instanceof ActionsWidgetProperty) ||
                     (prop instanceof ScriptsWidgetProperty) ||
-                    (prop instanceof RulesWidgetProperty))
+                    (prop instanceof RulesWidgetProperty) ||
+                    (prop instanceof HashPasswordProperty))
                 continue;
 
             for (String name : Widget.expandPropertyNames(prop))

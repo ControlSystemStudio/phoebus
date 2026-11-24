@@ -344,8 +344,10 @@ To restore the values in the snapshot user should click the Restore button. Duri
 disabled. In case a write operation fails on a PV, the process is *not* aborted, and user will be
 presented with a list of failed PVs when restore operation completes.
 
-**NOTE:** During the restore operation PVs are written in parallel, i.e. in an asynchronous manner. The order of
-write operations is hence undefined.
+**NOTE:** During the restore operation PVs are by default written in parallel, i.e. in an asynchronous manner. The order of
+write operations is hence undefined. If synchronous write operations of PVs are needed (e.g. when using channel access),
+the client or server or both should set the preference ``org.phoebus.saveandrestore.util/restorePolicy`` should be set
+to ``SYNCHRONOUS``.
 
 Prior to restore user has the option to:
 
@@ -365,7 +367,7 @@ Filter PV items in list
 ^^^^^^^^^^^^^^^^^^^^^^^
 The list of items in the snapshot view can be filtered based on the PV name. See screenshot for highlighted UI element
 where user may specify a string pattern to match PV names. Non-matching items will be hidden from the list view and
-**also excluded from a restore operation**.
+**also excluded from a restore operation**. Filtering is case-insensitive.
 
 To filter the view without excluding PV items from a restore operation, user needs to tick the “Preserve selection…” checkbox.
 

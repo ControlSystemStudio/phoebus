@@ -13,7 +13,7 @@ public class DisplayNavigationViewMenuEntry implements MenuEntry {
 
     @Override
     public String getMenuPath() {
-        return "Utility";
+        return Messages.MenuPath;
     }
 
     @Override

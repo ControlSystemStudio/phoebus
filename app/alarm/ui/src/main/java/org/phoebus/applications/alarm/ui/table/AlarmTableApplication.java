@@ -17,6 +17,7 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.AlarmURI;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.applications.alarm.ui.Messages;
 
 /** Application descriptor for "Alarm Table"
  *  @author Kay Kasemir
@@ -28,7 +29,7 @@ public class AlarmTableApplication implements AppResourceDescriptor
     public static final String NAME = "alarm_table";
 
     /** Visible app name */
-    public static final String DISPLAY_NAME = "Alarm Table";
+    public static final String DISPLAY_NAME = Messages.AlarmTable;
 
     @Override
     public String getName()

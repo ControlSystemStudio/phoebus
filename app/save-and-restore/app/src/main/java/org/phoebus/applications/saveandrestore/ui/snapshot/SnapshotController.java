@@ -1239,11 +1239,11 @@ public class SnapshotController extends SaveAndRestoreBaseController
             List<List<Pattern>> regexPatterns = filters.stream()
                     .map(item -> {
                         if (item.startsWith("/")) {
-                            return List.of(Pattern.compile(item.substring(1, item.length() - 1).trim()));
+                            return List.of(Pattern.compile(item.substring(1, item.length() - 1).trim(), Pattern.CASE_INSENSITIVE));
                         } else {
                             return Arrays.stream(item.split("&"))
                                     .map(andItem -> andItem.replaceAll("\\*", ".*"))
-                                    .map(andItem -> Pattern.compile(andItem.trim()))
+                                    .map(andItem -> Pattern.compile(andItem.trim(), Pattern.CASE_INSENSITIVE))
                                     .collect(Collectors.toList());
                         }
                     }).toList();

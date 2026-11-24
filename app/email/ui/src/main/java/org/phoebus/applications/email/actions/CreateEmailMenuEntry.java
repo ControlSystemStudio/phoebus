@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.email.actions;
 
+import org.phoebus.applications.email.Messages;
 import org.phoebus.applications.email.EmailApp;
 import org.phoebus.email.EmailPreferences;
 import org.phoebus.framework.workbench.ApplicationService;
@@ -44,7 +45,7 @@ public class CreateEmailMenuEntry implements MenuEntry {
 
     @Override
     public String getMenuPath() {
-        return "Utility";
+        return Messages.MenuPath;
     }
 
     @Override

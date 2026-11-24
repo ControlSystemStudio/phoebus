@@ -83,13 +83,6 @@ public class TalkClient
         listeners.add(listener);
     }
 
-    /** @param listener - Listener to remove */
-    public void removeListener(final TalkClientListener listener)
-    {
-        if (! listeners.remove(listener))
-            throw new IllegalStateException("Unknown listener");
-    }
-
     /** Start client
      *  @see #shutdown()
      */
@@ -127,7 +120,7 @@ public class TalkClient
     /** Perform one check for updates */
     private void checkUpdates()
     {
-        final ConsumerRecords<String, String> records = consumer.poll(100);
+        final ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
         for (final ConsumerRecord<String, String> record : records)
         {
             String path = record.key();
@@ -145,9 +138,9 @@ public class TalkClient
 
             // Extract the message info from the JSON and notify the listeners.
 
-            final String   severity = jn.get(JsonTags.SEVERITY).textValue();
+            final String   severity = jn.get(JsonTags.SEVERITY).stringValue();
             final boolean standout = jn.get(JsonTags.STANDOUT).asBoolean();
-            final String   message  = jn.get(JsonTags.TALK).textValue();
+            final String   message  = jn.get(JsonTags.TALK).stringValue();
 
             try
             {
@@ -166,11 +159,11 @@ public class TalkClient
     private Optional<Instant> nextDisconnectedAnnunciation = Optional.empty(); // When alarm server is disconnected: point in time for next annunciation of disconnection.
     private final Duration disconnectionAnnunciationPeriod = Duration.ofMillis(AlarmSystem.nag_period_ms);
     private final Duration idleTimeoutDuration = Duration.ofMillis(AlarmSystem.idle_timeout_ms).multipliedBy(3);
-    private AtomicReference<Instant> lastReceivedUpdateFromAlarmServer = new AtomicReference<>(Instant.now());
+    private final AtomicReference<Instant> lastReceivedUpdateFromAlarmServer = new AtomicReference<>(Instant.now());
 
     private void updateHeartbeatTimestampLoop() {
         while (running.get()) {
-            final ConsumerRecords<String, String> records = heartbeatConsumer.poll(100);
+            final ConsumerRecords<String, String> records = heartbeatConsumer.poll(Duration.ofMillis(100));
             if (!records.isEmpty()) {
                 lastReceivedUpdateFromAlarmServer.set(Instant.now());
             }

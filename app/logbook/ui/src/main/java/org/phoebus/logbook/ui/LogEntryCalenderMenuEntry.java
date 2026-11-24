@@ -34,9 +34,9 @@ public class LogEntryCalenderMenuEntry implements MenuEntry
     @Override
     public String getMenuPath()
     {
-        return "Utility";
+        return Messages.MenuPath;
     }
-    
+
     @Override
     public Image getIcon()
     {

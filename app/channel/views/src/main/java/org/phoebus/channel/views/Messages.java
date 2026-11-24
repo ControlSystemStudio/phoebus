@@ -18,8 +18,11 @@ public class Messages
     // --- Keep alphabetically sorted and 'in sync' with messages.properties!
     // ---
     /** Externalized strings */
+    public static String ChannelTable;
+    public static String ChannelTree;
     public static String ChannelTableNameColumn;
     public static String ChannelTableOwnerColumn;
+    public static String MenuPath;
 
     static
     {

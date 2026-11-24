@@ -14,6 +14,8 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import org.csstudio.display.builder.model.widgets.BaseLEDWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.AlarmSeverity;
@@ -230,6 +232,10 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
             final Color color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
             label.setTextFill(color);
             label.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+            WidgetFont font = model_widget.propFont().getValue();
+            WidgetFontStyle style = font.getStyle();
+            boolean underline = style.toString().contains(WidgetFontStyle.UNDERLINE.toString());
+            label.setUnderline(underline);
 
             led.setStyle("-fx-stroke: " + JFXUtil.webRgbOrHex(model_widget.propLineColor().getValue()));
 

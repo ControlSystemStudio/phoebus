@@ -121,6 +121,7 @@ public class Messages {
     public static String makeRestorable;
     public static String makeReadOnly;
     public static String manageFilters;
+    public static String MenuPath;
     public static String menuItemDeleteSelectedPVs;
     public static String noFilter;
     public static String openResourceFailedTitle;
@@ -145,6 +146,7 @@ public class Messages {
     public static String restoreFailedPVs;
     public static String restoreFromClient;
     public static String restoreFromService;
+    public static String SaveAndRestore;
     public static String saveFilter;
 
     public static String saveFilterConfirmOverwrite;
