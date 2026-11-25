@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.scene.control.Menu;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -36,6 +37,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.applications.alarm.ui.config.ItemConfigDialog;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
@@ -610,40 +612,46 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
             if (AlarmUI.mayConfigure(model))
             {
+                final Menu manageMenu = new Menu();
+                manageMenu.setText(Messages.manageItems);
+                manageMenu.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/edit.png"));
+                final ObservableList<MenuItem> manageMenuItems = manageMenu.getItems();
+
                 if (selection.size() <= 0)
                     // Add first item to empty config
-                    menu_items.add(new AddComponentAction(tree_view, model, model.getRoot()));
+                    manageMenuItems.add(new AddComponentAction(tree_view, model, model.getRoot()));
                 else if (selection.size() == 1)
                 {
                     final AlarmTreeItem<?> item = selection.get(0);
-                    menu_items.add(new ConfigureComponentAction(tree_view, model, item));
-                    menu_items.add(new SeparatorMenuItem());
+                    manageMenuItems.add(new ConfigureComponentAction(tree_view, model, item));
 
-                    menu_items.add(new CopyItemAction(tree_view, clipboard, isClipboardCut, item));
-                    menu_items.add(new CutItemAction(tree_view, clipboard, isClipboardCut, item));
+                    manageMenuItems.add(new CopyItemAction(tree_view, clipboard, isClipboardCut, item));
+                    manageMenuItems.add(new CutItemAction(tree_view, clipboard, isClipboardCut, item));
 
                     final AlarmTreeItem<?> parent = item instanceof AlarmClientNode ? item : item.getParent();
                     final TreeItem<AlarmTreeItem<?>> viewParent = path2view.get(parent.getPathName());
-                    menu_items.add(new PasteItemAction(tree_view, model, viewParent, clipboard, isClipboardCut.get()));
+                    manageMenuItems.add(new PasteItemAction(tree_view, model, viewParent, clipboard, isClipboardCut.get()));
 
                     if (item instanceof AlarmClientNode)
-                        menu_items.add(new AddComponentAction(tree_view, model, item));
+                        manageMenuItems.add(new AddComponentAction(tree_view, model, item));
 
-                    menu_items.add(new RenameTreeItemAction(tree_view, model, item));
+                    manageMenuItems.add(new RenameTreeItemAction(tree_view, model, item));
 
                     if (item instanceof AlarmClientLeaf)
-                        menu_items.add(new DuplicatePVAction(tree_view, model, (AlarmClientLeaf) item));
+                        manageMenuItems.add(new DuplicatePVAction(tree_view, model, (AlarmClientLeaf) item));
 
-                    menu_items.add(new MoveTreeItemAction(tree_view, model, item));
+                    manageMenuItems.add(new MoveTreeItemAction(tree_view, model, item));
                 }
 
                 if (selection.size() >= 1)
                 {
-                    menu_items.add(new EnableComponentAction(tree_view, model, selection));
-                    menu_items.add(new DisableAction(tree_view, model, selection));
-                    menu_items.add(new RemoveComponentAction(tree_view, model, selection));
+                    manageMenuItems.add(new EnableComponentAction(tree_view, model, selection));
+                    manageMenuItems.add(new DisableAction(tree_view, model, selection));
+                    manageMenuItems.add(new RemoveComponentAction(tree_view, model, selection));
 
                 }
+
+                menu_items.add(manageMenu);
             }
 
             menu_items.add(new SeparatorMenuItem());
