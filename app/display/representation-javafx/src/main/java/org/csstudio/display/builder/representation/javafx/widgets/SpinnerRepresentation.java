@@ -14,6 +14,10 @@ import java.util.logging.Level;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -217,7 +221,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
             }
             logger.log(Level.FINE, "Writing '" + text + "' as " + value + " (" + value.getClass().getName() + ")");
             toolkit.fireWrite(model_widget, value);
-    
+
             // Wrote value. Expected is either
             // a) PV receives that value, PV updates to
             //    submitted value or maybe a 'clamped' value
@@ -535,8 +539,10 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
 
             // http://stackoverflow.com/questions/27700006/how-do-you-change-the-background-color-of-a-textfield-without-changing-the-border
             final WidgetColor back_color = active ? active_color : model_widget.propBackgroundColor().getValue();
-            style.append("-fx-control-inner-background: ");
-            JFXUtil.appendWebRGB(style, back_color).append(";");
+            final Color color = JFXUtil.convert(back_color);
+            Background background = new Background(new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY));
+            jfx_node.getEditor().setBackground(background);
+            jfx_node.setBackground(background);
 
             jfx_node.editorProperty().getValue().setStyle(style.toString());
             jfx_node.editorProperty().getValue().setAlignment(pos);
@@ -639,4 +645,3 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         updateChanges();
     }
 }
-

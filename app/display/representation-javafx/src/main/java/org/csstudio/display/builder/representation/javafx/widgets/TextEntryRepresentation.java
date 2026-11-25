@@ -14,8 +14,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import javafx.css.PseudoClass;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -245,12 +250,12 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         if (enabled) {
             // Strip 'units' etc. from text
             final String text = jfx_node.getText();
-    
+
             final Object value = FormatOptionHandler.parse(model_widget.runtimePropValue().getValue(), text,
                                                            model_widget.propFormat().getValue());
             logger.log(Level.FINE, "Writing '" + text + "' as " + value + " (" + value.getClass().getName() + ")");
             toolkit.fireWrite(model_widget, value);
-    
+
             // Wrote value. Expected is either
             // a) PV receives that value, PV updates to
             //    submitted value or maybe a 'clamped' value
@@ -401,6 +406,8 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
 
             // http://stackoverflow.com/questions/27700006/how-do-you-change-the-background-color-of-a-textfield-without-changing-the-border
             final WidgetColor back_color = active ? active_color : model_widget.propBackgroundColor().getValue();
+            final Color color = JFXUtil.convert(back_color);
+            jfx_node.setBackground(new Background(new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY)));
             style.append("-fx-control-inner-background: ");
             JFXUtil.appendWebRGB(style, back_color).append(";");
             jfx_node.setStyle(style.toString());
@@ -429,7 +436,7 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                 String alignment = model_widget.propHorizontalAlignment().getValue().toString().toLowerCase();
                 PseudoClass alignmentClass = PseudoClass.getPseudoClass(alignment);
                 jfx_node.pseudoClassStateChanged(alignmentClass, true);
-                
+
                 if (jfx_node.getScene() != null && !enabled) {
                     // Need to get the TextArea 'content' node to set the cursor
                     // for the whole widget otherwise it will only show on the borders.
