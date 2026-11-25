@@ -12,6 +12,7 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -21,11 +22,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import javafx.collections.FXCollections;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.HBox;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -33,6 +37,7 @@ import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.BasicState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.Messages;
@@ -97,6 +102,21 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class AlarmTreeView extends BorderPane implements AlarmClientListener
 {
+    private enum AlarmFilter
+    {
+        DISABLED(leaf -> !leaf.isEnabled()),
+        OK(leaf -> leaf.isEnabled() && leaf.getState().severity == SeverityLevel.OK),
+        ACTIVE(leaf -> leaf.getState().severity.isActive()),
+        ACKNOWLEDGED(leaf -> leaf.getState().severity.isAcknowledged());
+
+        final Predicate<AlarmClientLeaf> predicate;
+
+        AlarmFilter(final Predicate<AlarmClientLeaf> predicate)
+        {
+            this.predicate = predicate;
+        }
+    }
+
     private final Label no_server = AlarmUI.createNoServerLabel();
     private final TreeView<AlarmTreeItem<?>> tree_view = new TreeView<>();
 
@@ -154,6 +174,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     private final TextField searchBox;
 
+    private final List<ToggleButton> filterButtons = new ArrayList<>();
+
+    private final Set<AlarmFilter> activeFilters = EnumSet.noneOf(AlarmFilter.class);
+
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
     // to dynamically create TreeItem as TreeView requests information.
     //
@@ -194,7 +218,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         searchBox.setPromptText(Messages.searchByPv);
         searchBox.setPrefWidth(300);
 
-        setTop(createToolbar(searchBox));
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_disabled.png"), AlarmFilter.DISABLED, Messages.filterDisabledAlarmsTooltip, "left-pill");
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ok.png"), AlarmFilter.OK, Messages.filterOkAlarmsTooltip, "center-pill");
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_active.png"), AlarmFilter.ACTIVE, Messages.filterActiveAlarmsTooltip, "center-pill");
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ack.png"), AlarmFilter.ACKNOWLEDGED, Messages.filterAcknowledgedAlarmsTooltip, "right-pill");
+
+        setTop(createToolbar());
         setCenter(tree_view);
 
         createContextMenu();
@@ -235,9 +264,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
             // expand tree item if is matches item name
             if (tree_view.getRoot() != null && itemName != null) {
-                for (TreeItem treeItem : tree_view.getRoot().getChildren()) {
-                    if (((AlarmTreeItem<?>) treeItem.getValue()).getName().equals(itemName)) {
-                        expandAlarms(treeItem);
+                for (final TreeItem<AlarmTreeItem<?>> treeItem : tree_view.getRoot().getChildren()) {
+                    if (treeItem.getValue().getName().equals(itemName)) {
+                        treeItem.setExpanded(true);
                         break;
                     }
                 }
@@ -252,26 +281,17 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         });
     }
 
-    private ToolBar createToolbar(TextField searchBox)
+    private ToolBar createToolbar()
     {
         final Button collapse = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/collapse.png"));
-        collapse.setTooltip(new Tooltip("Collapse alarm tree"));
-        collapse.setOnAction(event ->
-        {
-            for (TreeItem<AlarmTreeItem<?>> sub : tree_view.getRoot().getChildren())
-                sub.setExpanded(false);
-        });
+        collapse.setTooltip(new Tooltip(Messages.collapseAlarmTree));
+        collapse.setOnAction(event -> expandOrCollapseSelection(false));
 
-        final Button show_alarms = new Button("",
-                ImageCache.getImageView(AlarmUI.class, "/icons/expand_alarms.png"));
-        show_alarms.setTooltip(new Tooltip("Expand alarm tree to show active alarms"));
-        show_alarms.setOnAction(event -> expandAlarms(tree_view.getRoot()));
-
-        final Button show_disabled = new Button("",
-                ImageCache.getImageView(AlarmUI.class, "/icons/expand_disabled.png"));
-        show_disabled.setTooltip(new Tooltip("Expand alarm tree to show disabled PVs"));
-        show_disabled.setOnAction(event -> expandDisabledPVs(tree_view.getRoot()));
+        final Button expand = new Button("",
+                ImageCache.getImageView(AlarmUI.class, "/icons/expand.png"));
+        expand.setTooltip(new Tooltip(Messages.expandAlarmTree));
+        expand.setOnAction(event -> expandOrCollapseSelection(true));
 
         final Button searchButton = new Button(Messages.search);
 
@@ -286,7 +306,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             }
         });
 
-        return new ToolBar(searchBox, searchButton, no_server, changing, ToolbarHelper.createSpring(), collapse, show_alarms, show_disabled);
+        final HBox filterBox = new HBox();
+        filterBox.getChildren().addAll(filterButtons);
+
+        return new ToolBar(searchBox, searchButton, filterBox, no_server, changing, ToolbarHelper.createSpring(), collapse, expand);
     }
 
     ToolBar getToolbar()
@@ -305,9 +328,11 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         for (final AlarmTreeItem<?> child : item.getValue().getChildren())
         {
             final TreeItem<AlarmTreeItem<?>> childItem = path2view.get(child.getPathName());
+            if (childItem == null) {
+                continue;
+            }
 
             final boolean shouldDisplay = propagateVisibilityDownTree(childItem);
-
             if (shouldDisplay)
             {
                 final boolean doesNotHaveChildAlready = item.getChildren().stream()
@@ -317,9 +342,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                     addChildToParent(item, childItem);
             }
             else
-                item.getChildren().removeIf(
-                        alarmTreeItemTreeItem -> alarmTreeItemTreeItem.getValue() == child
-                );
+                item.getChildren().remove(childItem);
         }
 
         return shouldDisplay(item);
@@ -343,6 +366,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
         final TreeItem<AlarmTreeItem<?>> currentParent = item.getParent();
         final TreeItem<AlarmTreeItem<?>> actualParent = path2view.get(modelParent.getPathName());
+        if (actualParent == null) {
+            return;
+        }
 
         final boolean shouldDisplay = shouldDisplay(item);
         if (shouldDisplay && currentParent == null)
@@ -361,8 +387,32 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     private boolean shouldDisplay(final TreeItem<AlarmTreeItem<?>> item)
     {
-        return (searchBox.getText().isEmpty() || !item.getChildren().isEmpty())
-                || item.getValue() instanceof AlarmClientLeaf && item.getValue().getName().toLowerCase().contains(searchBox.getText().toLowerCase());
+        final boolean hasVisibleChildren = !item.getChildren().isEmpty();
+        if (hasVisibleChildren) {
+            return true;
+        }
+
+        // Always show components with no children... unfortunate tradeoff; otherwise they would never be shown because
+        // they don't have any leaf to match the filters
+        final boolean isEmptyComponent = item.getValue() instanceof final AlarmClientNode node && node.getChildren().isEmpty();
+        if (isEmptyComponent) {
+            return true;
+        }
+
+        // At this point, the item must match both the search and the filter to be displayed
+        final boolean matchesSearch = searchBox.getText().isEmpty() || item.getValue() instanceof final AlarmClientLeaf leaf
+                && leaf.getName().toLowerCase().contains(searchBox.getText().toLowerCase());
+        if (!matchesSearch) {
+            return false;
+        }
+
+        boolean matchesAnyFilter = activeFilters.isEmpty(); // no filters selected = show everything
+        for (final AlarmFilter filter : activeFilters) {
+            final boolean matchesFilter = item.getValue() instanceof final AlarmClientLeaf leaf && filter.predicate.test(leaf);
+            matchesAnyFilter = matchesAnyFilter || matchesFilter;
+        }
+
+        return matchesAnyFilter;
     }
 
     /**
@@ -384,42 +434,41 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items.add(index, view_item);
     }
 
-    private void expandAlarms(final TreeItem<AlarmTreeItem<?>> node)
-    {
-        if (node.isLeaf())
-            return;
-
-        // Always expand the root, which itself is not visible,
-        // but this will show all the top-level elements.
-        // In addition, expand those items which are in active alarm.
-        final boolean expand = node.getValue().getState().severity.isActive() ||
-                               node == tree_view.getRoot();
-        node.setExpanded(expand);
-        for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
-            expandAlarms(sub);
-    }
-
-    /** @param node Subtree node where to expand disabled PVs
-     *  @return Does subtree contain disabled PVs?
+    /** Collapses or expands (depending on the value of expand) the
+     *  given component, plus all of its children recursively.
      */
-    private boolean expandDisabledPVs(final TreeItem<AlarmTreeItem<?>> node)
+    private void expandOrCollapse(final TreeItem<AlarmTreeItem<?>> component, final boolean expand)
     {
-        if (node != null  &&  (node.getValue() instanceof AlarmClientLeaf))
-        {
-            AlarmClientLeaf pv = (AlarmClientLeaf) node.getValue();
-            if (! pv.isEnabled())
-                return true;
+        if (component != tree_view.getRoot()) {
+            component.setExpanded(expand);
         }
 
-        // Always expand the root, which itself is not visible,
-        // but this will show all the top-level elements.
-        // In addition, expand those items which contain disabled PV.
-        boolean expand = node == tree_view.getRoot();
-        for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
-            if (expandDisabledPVs(sub))
-                expand = true;
-        node.setExpanded(expand);
-        return expand;
+        final List<AlarmTreeItem<?>> children = component.getValue().getChildren();
+        if (!children.isEmpty()) {
+            for (final AlarmTreeItem<?> child : children) {
+                // We use path2view.get because component might have hidden children, which we still want to expand/collapse
+                final TreeItem<AlarmTreeItem<?>> view_item = path2view.get(child.getPathName());
+                if (view_item != null) {
+                    expandOrCollapse(view_item, expand);
+                }
+            }
+        }
+    }
+
+    /** Reads the selection and collapses or expands (depending on the
+     *  value of expand) the selected components. If leaf nodes are
+     *  selected, their parents are collapsed.
+     */
+    private void expandOrCollapseSelection(final boolean expand) {
+        // We clone the selection because we might be about to modify it
+        final List<TreeItem<AlarmTreeItem<?>>> selected = tree_view.getSelectionModel().getSelectedItems().stream().toList();
+        if (selected.isEmpty()) {
+            expandOrCollapse(tree_view.getRoot(), expand);
+        } else {
+            for (final TreeItem<AlarmTreeItem<?>> item : selected) {
+                expandOrCollapse(item.getValue() instanceof AlarmClientLeaf ? item.getParent() : item, expand);
+            }
+        }
     }
 
     private TreeItem<AlarmTreeItem<?>> createViewItem(final AlarmTreeItem<?> model_item)
@@ -452,7 +501,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             setCursor(Cursor.WAIT);
             final ObservableList<Node> items = getToolbar().getItems();
             if (! items.contains(changing))
-                items.add(3, changing);
+                items.add(5, changing);
         }
         else
             previous.cancel(false);
@@ -464,7 +513,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         final ObservableList<Node> items = getToolbar().getItems();
         items.remove(no_server);
         if (! alive)
-            // Place left of spring, collapse, expand_alarms,
+            // Place left of spring, collapse button, expand button,
             // i.e. right of potential AlarmConfigSelector
             items.add(items.size()-3, no_server);
     }
@@ -526,6 +575,11 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             final TreeItem<AlarmTreeItem<?>> view_item = createViewItem(item);
 
             propagateVisibilityUpTree(view_item);
+            // Special case: 1 - empty component added, 2 - alarm added to that component. If the filter
+            // does not match the leaf, the component should now be hidden... but propagateVisibilityUpTree
+            // short circuits, so the parent's visibility is never updated
+            propagateVisibilityUpTree(view_parent);
+
             done.countDown();
         });
 
@@ -678,11 +732,15 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                     path2view.put(value.getPathName(), update);
                     parent.getChildren().set(index, update);
                 }
+
+                propagateVisibilityUpTree(path2view.get(view_item.getValue().getPathName()));
             }
 
             // Restore selection
             tree_view.getSelectionModel().clearSelection();
-            updatedSelectedItems.forEach(item -> tree_view.getSelectionModel().select(item));
+            updatedSelectedItems.stream()
+                    .filter(item -> item.getParent() != null)
+                    .forEach(item -> tree_view.getSelectionModel().select(item));
         });
     }
 
@@ -797,6 +855,23 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             db.setContent(content);
             event.consume();
         });
+    }
+
+    private void addFilterButton(final Node graphic, final AlarmFilter filter, final String tooltip, final String pillClass)
+    {
+        final ToggleButton toggleButton = new ToggleButton();
+        toggleButton.setGraphic(graphic);
+        toggleButton.setTooltip(new Tooltip(tooltip));
+        toggleButton.getStyleClass().add(pillClass);
+        toggleButton.selectedProperty().addListener(_ -> {
+            if (toggleButton.isSelected()) {
+                activeFilters.add(filter);
+            } else {
+                activeFilters.remove(filter);
+            }
+            propagateVisibilityDownTree(tree_view.getRoot());
+        });
+        filterButtons.add(toggleButton);
     }
 
     private static void dumpTree(final TreeItem<AlarmTreeItem<?>> item)
