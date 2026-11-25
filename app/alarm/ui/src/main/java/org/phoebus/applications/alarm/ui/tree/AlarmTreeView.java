@@ -196,6 +196,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         createContextMenu();
         addClickSupport();
         addDragSupport();
+        addKeyboardSupport();
 
         if (AlarmSystem.alarm_tree_startup_ms <= 0)
         {
@@ -708,6 +709,44 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             content.putString(item.getName());
             db.setContent(content);
             event.consume();
+        });
+    }
+
+    private void addKeyboardSupport()
+    {
+        tree_view.setOnKeyPressed(event -> {
+            final TreeItem<AlarmTreeItem<?>> selectedViewItem = tree_view.getSelectionModel().getSelectedItem();
+            final List<AlarmTreeItem<?>> selection = tree_view.getSelectionModel()
+                    .getSelectedItems()
+                    .stream()
+                    .map(TreeItem::getValue)
+                    .collect(Collectors.toList());
+
+            switch (event.getCode()) {
+                case ESCAPE -> {
+                    tree_view.getSelectionModel().clearSelection();
+                }
+                case DELETE -> {
+                    new RemoveComponentAction(tree_view, model, selection).fire();
+                }
+                case C -> {
+                    if (event.isControlDown() && selectedViewItem != null) {
+                        new CopyItemAction(tree_view, clipboard, isClipboardCut, selectedViewItem.getValue()).fire();
+                    }
+                }
+                case X -> {
+                    if (event.isControlDown() && selectedViewItem != null) {
+                        new CutItemAction(tree_view, clipboard, isClipboardCut, selectedViewItem.getValue()).fire();
+                    }
+                }
+                case V -> {
+                    if (event.isControlDown() && selectedViewItem != null) {
+                        final TreeItem<AlarmTreeItem<?>> parent = selectedViewItem.getValue() instanceof AlarmClientNode ? selectedViewItem : selectedViewItem.getParent();
+                        new PasteItemAction(tree_view, model, parent, clipboard, isClipboardCut.get()).fire();
+                    }
+                }
+                case null, default -> {}
+            }
         });
     }
 
