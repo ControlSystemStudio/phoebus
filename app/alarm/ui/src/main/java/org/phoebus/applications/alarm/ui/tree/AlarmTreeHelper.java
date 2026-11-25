@@ -18,10 +18,7 @@ import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.ui.Messages;
-import org.phoebus.ui.dialog.DialogHelper;
 
-import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.TreeView;
 import org.phoebus.util.time.TimestampFormats;
 
 /** @author Evan Smith
@@ -55,28 +52,6 @@ public class AlarmTreeHelper
 			rebuildTree(model, child, new_path);
 		}
 	}
-
-	/** Prompt the screen with a dialog box.
-	 *  @param title Title string of the dialog box.
-	 *  @param header Header string of the dialog box.
-	 *  @param default_text Default text contents of dialog box.
-	 *  @param node Node where the dialog box will be located.
-	 *  @return String The entered string or null if the entry was empty.
-	 */
-    public static String prompt(String title, String header,  final String default_text, final TreeView<AlarmTreeItem<?>> node)
-    {
-    	// Prompt for new name
-        final TextInputDialog prompt = new TextInputDialog(default_text);
-        DialogHelper.positionDialog(prompt, node, -200, -100);
-        prompt.setTitle(title);
-        prompt.setHeaderText(header);
-        prompt.getDialogPane().setPrefWidth(500);
-        prompt.setResizable(true);
-        final String input = prompt.showAndWait().orElse("");
-        if (input.isEmpty())
-            return null;
-        return input;
-    }
 
 	/** Validate the passed path string by checking if the path name is valid.
 	 *
@@ -151,6 +126,18 @@ public class AlarmTreeHelper
 		else {
 			return alarmTreeItem.getChildren().stream().flatMap(child -> streamLeafItems(child));
 		}
+	}
+
+	/**
+	 * Collects the names of {@link AlarmClientLeaf}s items.
+	 * @param root The start node from where to get {@link AlarmClientLeaf}s. If this is an {@link AlarmClientLeaf}, it
+	 *             will be returned as the sole item in the {@link Set}
+	 * @return A {@link Set} of the names of all {@link AlarmClientLeaf}s.
+	 */
+	public static Set<String> getLeafNames(final AlarmTreeItem<?> root) {
+		return streamLeafItems(root)
+				.map(AlarmTreeItem::getName)
+				.collect(Collectors.toSet());
 	}
 
 	/**

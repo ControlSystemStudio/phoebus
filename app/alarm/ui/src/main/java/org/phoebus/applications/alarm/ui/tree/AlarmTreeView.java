@@ -24,7 +24,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.scene.control.Menu;
 import javafx.scene.control.TextField;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
@@ -154,6 +157,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     private final TextField searchBox;
 
+    private static final SimpleObjectProperty<AlarmTreeItem<?>> clipboard = new SimpleObjectProperty<>(null);
+    private static final SimpleBooleanProperty isClipboardCut = new SimpleBooleanProperty(false);
+
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
     // to dynamically create TreeItem as TreeView requests information.
     //
@@ -200,6 +206,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         createContextMenu();
         addClickSupport();
         addDragSupport();
+        addKeyboardSupport();
 
         if (AlarmSystem.alarm_tree_startup_ms <= 0)
         {
@@ -554,6 +561,11 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         {
             indicateChange();
 
+            // Clear clipboard if we are removing clipboard's item
+            if (clipboard.get() != null && clipboard.get().getPathName().equals(item.getPathName())) {
+                clipboard.set(null);
+            }
+
             // Remove item and all sub-items from model2ui
             final TreeItem<AlarmTreeItem<?>> view_item = removeViewItems(item);
             if (view_item == null)
@@ -705,32 +717,46 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
             if (AlarmUI.mayConfigure(model))
             {
+                final Menu manageMenu = new Menu();
+                manageMenu.setText(Messages.manageItems);
+                manageMenu.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/edit.png"));
+                final ObservableList<MenuItem> manageMenuItems = manageMenu.getItems();
+
                 if (selection.size() <= 0)
                     // Add first item to empty config
-                    menu_items.add(new AddComponentAction(tree_view, model, model.getRoot()));
+                    manageMenuItems.add(new AddComponentAction(tree_view, model, model.getRoot()));
                 else if (selection.size() == 1)
                 {
                     final AlarmTreeItem<?> item = selection.get(0);
-                    menu_items.add(new ConfigureComponentAction(tree_view, model, item));
-                    menu_items.add(new SeparatorMenuItem());
+                    manageMenuItems.add(new ConfigureComponentAction(tree_view, model, item));
+
+                    manageMenuItems.add(new CopyItemAction(tree_view, clipboard, isClipboardCut, item));
+                    manageMenuItems.add(new CutItemAction(tree_view, clipboard, isClipboardCut, item));
+
+                    final AlarmTreeItem<?> parent = item instanceof AlarmClientNode ? item : item.getParent();
+                    final TreeItem<AlarmTreeItem<?>> viewParent = path2view.get(parent.getPathName());
+                    manageMenuItems.add(new PasteItemAction(tree_view, model, viewParent, clipboard, isClipboardCut.get()));
 
                     if (item instanceof AlarmClientNode)
-                        menu_items.add(new AddComponentAction(tree_view, model, item));
+                        manageMenuItems.add(new AddComponentAction(tree_view, model, item));
 
-                    menu_items.add(new RenameTreeItemAction(tree_view, model, item));
+                    manageMenuItems.add(new RenameTreeItemAction(tree_view, model, item));
 
                     if (item instanceof AlarmClientLeaf)
-                        menu_items.add(new DuplicatePVAction(tree_view, model, (AlarmClientLeaf) item));
+                        manageMenuItems.add(new DuplicatePVAction(tree_view, model, (AlarmClientLeaf) item));
 
-                    menu_items.add(new MoveTreeItemAction(tree_view, model, item));
+                    manageMenuItems.add(new MoveTreeItemAction(tree_view, model, item));
                 }
+
                 if (selection.size() >= 1)
                 {
-                    menu_items.add(new EnableComponentAction(tree_view, model, selection));
-                    menu_items.add(new DisableAction(tree_view, model, selection));
-                    menu_items.add(new RemoveComponentAction(tree_view, model, selection));
+                    manageMenuItems.add(new EnableComponentAction(tree_view, model, selection));
+                    manageMenuItems.add(new DisableAction(tree_view, model, selection));
+                    manageMenuItems.add(new RemoveComponentAction(tree_view, model, selection));
 
                 }
+
+                menu_items.add(manageMenu);
             }
 
             menu_items.add(new SeparatorMenuItem());
@@ -796,6 +822,44 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             content.putString(item.getName());
             db.setContent(content);
             event.consume();
+        });
+    }
+
+    private void addKeyboardSupport()
+    {
+        tree_view.setOnKeyPressed(event -> {
+            final TreeItem<AlarmTreeItem<?>> selectedViewItem = tree_view.getSelectionModel().getSelectedItem();
+            final List<AlarmTreeItem<?>> selection = tree_view.getSelectionModel()
+                    .getSelectedItems()
+                    .stream()
+                    .map(TreeItem::getValue)
+                    .collect(Collectors.toList());
+
+            switch (event.getCode()) {
+                case ESCAPE -> {
+                    tree_view.getSelectionModel().clearSelection();
+                }
+                case DELETE -> {
+                    new RemoveComponentAction(tree_view, model, selection).fire();
+                }
+                case C -> {
+                    if (event.isControlDown() && selectedViewItem != null) {
+                        new CopyItemAction(tree_view, clipboard, isClipboardCut, selectedViewItem.getValue()).fire();
+                    }
+                }
+                case X -> {
+                    if (event.isControlDown() && selectedViewItem != null) {
+                        new CutItemAction(tree_view, clipboard, isClipboardCut, selectedViewItem.getValue()).fire();
+                    }
+                }
+                case V -> {
+                    if (event.isControlDown() && selectedViewItem != null) {
+                        final TreeItem<AlarmTreeItem<?>> parent = selectedViewItem.getValue() instanceof AlarmClientNode ? selectedViewItem : selectedViewItem.getParent();
+                        new PasteItemAction(tree_view, model, parent, clipboard, isClipboardCut.get()).fire();
+                    }
+                }
+                case null, default -> {}
+            }
         });
     }
 

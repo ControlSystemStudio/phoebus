@@ -22,6 +22,8 @@ public class Messages
     public static String Annunciator;
     public static String commands;
     public static String configure;
+    public static String cutPasteAcrossConfigs;
+    public static String cutPasteIntoChild;
     public static String delayTooltip0;
     public static String delayTooltip1;
     public static String delayTooltip2;
@@ -36,6 +38,8 @@ public class Messages
     public static String displays;
     public static String enableAlarmFailed;
     public static String enableAlarms;
+    public static String enterNameForDuplicate;
+    public static String enterNewName;
     public static String guidance;
     public static String headerAlreadyDisabled;
     public static String headerAlreadyEnabled;
@@ -43,9 +47,19 @@ public class Messages
     public static String headerConfirmDisableWithEnableDate;
     public static String headerConfirmEnable;
     public static String indefinitely;
+    public static String manageItems;
     public static String MenuPath;
     public static String moveItemFailed;
+    public static String nameCannotBeEmpty;
+    public static String nodeAlreadyExists;
+    public static String nodePvsAlreadyExist;
+    public static String pasteItem;
+    public static String pasteItemFailed;
     public static String promptTitle;
+    public static String pvAlreadyExists;
+    public static String renameItem;
+    public static String renameDialogLabel;
+    public static String renameDialogTitle;
     public static String removeComponentFailed;
     public static String renameItemFailed;
     public static String search;
