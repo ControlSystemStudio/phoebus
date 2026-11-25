@@ -26,6 +26,7 @@ import org.csstudio.scan.command.IfCommand;
 import org.csstudio.scan.command.IncludeCommand;
 import org.csstudio.scan.command.LogCommand;
 import org.csstudio.scan.command.LoopCommand;
+import org.csstudio.scan.command.WhileCommand;
 import org.csstudio.scan.command.ParallelCommand;
 import org.csstudio.scan.command.ScanCommand;
 import org.csstudio.scan.command.ScriptCommand;
@@ -54,6 +55,7 @@ public class BaseScanCommandImplFactory implements ScanCommandImplFactory
             entry("include", (command, jython) -> new IncludeCommandImpl((IncludeCommand)command, jython)),
             entry("log", (command, jython) -> new LogCommandImpl((LogCommand)command, jython)),
             entry("loop", (command, jython) -> new LoopCommandImpl((LoopCommand)command, jython)),
+            entry("while", (command, jython) -> new WhileCommandImpl((WhileCommand)command, jython)),
             entry("parallel", (command, jython) -> new ParallelCommandImpl((ParallelCommand)command, jython)),
             entry("script", (command, jython) -> new ScriptCommandImpl((ScriptCommand)command, jython)),
             entry("sequence", (command, jython) -> new SequenceCommandImpl((SequenceCommand)command, jython)),

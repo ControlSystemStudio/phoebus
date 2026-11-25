@@ -20,10 +20,10 @@ import static org.csstudio.scan.ScanSystem.logger;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
-import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -38,21 +38,24 @@ import org.w3c.dom.Node;
 public class ScanCommandFactory
 {
     private static final Map<String, URL> images = new HashMap<>();
-    private static final Map<String, Supplier<ScanCommand>> factories = new HashMap<>();
+    private static final Map<String, Supplier<ScanCommand>> factories = new LinkedHashMap<>();
 
     static
     {
         for (ScanCommandRegistry reg : ServiceLoader.load(ScanCommandRegistry.class))
         {
+            logger.info(() -> "Loaded registry: " + reg.getClass().getName());
+            Map<String, Supplier<ScanCommand>> cmds = reg.getCommands();
+            logger.info(() -> "Commands from " + reg.getClass().getSimpleName() + ": " + cmds.keySet());
             images.putAll(reg.getImages());
             factories.putAll(reg.getCommands());
+            logger.info(() -> "Factories now: " + factories.keySet());
         }
     }
 
-    /** @return All known command IDs */
-    public static Set<String> getCommandIDs()
+    public static List<String> getCommandIDs()
     {
-        return factories.keySet();
+        return new ArrayList<>(factories.keySet());
     }
 
     /** @param id Command ID
@@ -86,7 +89,7 @@ public class ScanCommandFactory
      */
     public static List<ScanCommand> readCommands(Node node) throws Exception
     {
-        final List<ScanCommand> commands = new ArrayList<>();
+        final List<ScanCommand> commands = new ArrayList<ScanCommand>();
         while (node != null)
         {
             if (node.getNodeType() == Node.ELEMENT_NODE)

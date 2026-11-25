@@ -407,7 +407,8 @@ public class ScanClient
      */
     public long submitScan(final String name, final String xml_commands, final boolean queue) throws Exception
     {
-        final HttpURLConnection connection = connect("/scan/" + name, queue ? "" : "queue=false", long_timeout);
+		final String params = (queue ? "" : "queue=false") + "&pre_post=false";
+        final HttpURLConnection connection = connect("/scan/" + name, params, long_timeout);
         connection.setReadTimeout(0);
         try
         {

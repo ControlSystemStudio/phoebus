@@ -12,7 +12,6 @@ import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.MenuEntry;
 import org.phoebus.ui.spi.ToolbarEntry;
-import org.csstudio.scan.ui.Messages;
 
 import javafx.scene.image.Image;
 
@@ -37,7 +36,7 @@ public class ScanMonitorMenuEntry implements MenuEntry, ToolbarEntry
     @Override
     public String getMenuPath()
     {
-        return Messages.MenuPath;
+        return "Scan";
     }
 
     @Override

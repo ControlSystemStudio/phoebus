@@ -127,10 +127,8 @@ public class IfCommand extends ScanCommandWithBody
         command_element.appendChild(element);
 
         element = dom.createElement("value");
-        if (desired_value instanceof String)
-            element.appendChild(dom.createTextNode('"' + (String)desired_value + '"'));
-        else
-            element.appendChild(dom.createTextNode(desired_value.toString()));
+        // Quoted: literal String; unquoted: Double or PVReference (PV name)
+        element.appendChild(dom.createTextNode(StringOrDouble.quote(desired_value)));
         command_element.appendChild(element);
 
         element = dom.createElement("comparison");
@@ -174,7 +172,7 @@ public class IfCommand extends ScanCommandWithBody
         buf.append("If '").append(device_name).append("' ")
            .append(comparison).append(" ");
         buf.append(StringOrDouble.quote(desired_value));
-        if (comparison == Comparison.EQUALS)
+        if (comparison != Comparison.IN  &&  comparison != Comparison.NOT_IN  &&  tolerance > 0.0)
             buf.append(" (+-").append(tolerance).append(")");
         return buf.toString();
     }
