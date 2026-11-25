@@ -19,6 +19,7 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.ui.AlarmConfigSelector;
 import org.phoebus.applications.alarm.ui.AlarmURI;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -107,8 +108,7 @@ class AlarmTreeInstance implements AppInstance
 
     private void changeConfig(final String new_config_name)
     {
-        // Dispose existing setup
-        dispose();
+        JobManager.schedule("Dispose alarm client for config " + config_name, _ -> dispose());
 
         try
         {
