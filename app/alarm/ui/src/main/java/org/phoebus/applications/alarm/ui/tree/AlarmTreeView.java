@@ -24,7 +24,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.TextField;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
@@ -152,6 +155,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items.remove(changing);
         });
 
+    private final SimpleBooleanProperty is_editing_mode = new SimpleBooleanProperty(false);
+
     private final TextField searchBox;
 
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
@@ -194,7 +199,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         searchBox.setPromptText(Messages.searchByPv);
         searchBox.setPrefWidth(300);
 
-        setTop(createToolbar(searchBox));
+        setTop(createToolbar(model, searchBox));
         setCenter(tree_view);
 
         createContextMenu();
@@ -252,11 +257,21 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         });
     }
 
-    private ToolBar createToolbar(TextField searchBox)
+    private ToolBar createToolbar(final AlarmClient model, final TextField searchBox)
     {
+        final ToggleButton editing_mode = new ToggleButton("",
+                ImageCache.getImageView(AlarmUI.class, "/icons/alarm_edit.png"));
+        editing_mode.setTooltip(new Tooltip(Messages.editingModeTooltip));
+        is_editing_mode.bind(editing_mode.selectedProperty());
+        if (AlarmUI.mayConfigure(model)) {
+            editing_mode.setSelected(true);
+        } else {
+            editing_mode.setDisable(true);
+        }
+
         final Button collapse = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/collapse.png"));
-        collapse.setTooltip(new Tooltip("Collapse alarm tree"));
+        collapse.setTooltip(new Tooltip(Messages.collapseTooltip));
         collapse.setOnAction(event ->
         {
             for (TreeItem<AlarmTreeItem<?>> sub : tree_view.getRoot().getChildren())
@@ -265,12 +280,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
         final Button show_alarms = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/expand_alarms.png"));
-        show_alarms.setTooltip(new Tooltip("Expand alarm tree to show active alarms"));
+        show_alarms.setTooltip(new Tooltip(Messages.showAlarmsTooltip));
         show_alarms.setOnAction(event -> expandAlarms(tree_view.getRoot()));
 
         final Button show_disabled = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/expand_disabled.png"));
-        show_disabled.setTooltip(new Tooltip("Expand alarm tree to show disabled PVs"));
+        show_disabled.setTooltip(new Tooltip(Messages.showDisabledTooltip));
         show_disabled.setOnAction(event -> expandDisabledPVs(tree_view.getRoot()));
 
         final Button searchButton = new Button(Messages.search);
@@ -286,7 +301,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             }
         });
 
-        return new ToolBar(searchBox, searchButton, no_server, changing, ToolbarHelper.createSpring(), collapse, show_alarms, show_disabled);
+        return new ToolBar(searchBox, searchButton, no_server, changing, ToolbarHelper.createSpring(), editing_mode, collapse, show_alarms, show_disabled);
     }
 
     ToolBar getToolbar()
@@ -465,8 +480,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         items.remove(no_server);
         if (! alive)
             // Place left of spring, collapse, expand_alarms,
-            // i.e. right of potential AlarmConfigSelector
-            items.add(items.size()-3, no_server);
+            items.add(items.size()-4, no_server);
     }
 
     // AlarmClientModelListener
@@ -703,7 +717,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             if (menu_items.size() > 0)
                 menu_items.add(new SeparatorMenuItem());
 
-            if (AlarmUI.mayConfigure(model))
+            if (AlarmUI.mayConfigure(model) && is_editing_mode.get())
             {
                 if (selection.size() <= 0)
                     // Add first item to empty config
@@ -724,16 +738,18 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
                     menu_items.add(new MoveTreeItemAction(tree_view, model, item));
                 }
-                if (selection.size() >= 1)
-                {
-                    menu_items.add(new EnableComponentAction(tree_view, model, selection));
-                    menu_items.add(new DisableAction(tree_view, model, selection));
-                    menu_items.add(new RemoveComponentAction(tree_view, model, selection));
+            }
 
-                }
+            if (selection.size() >= 1)
+            {
+                menu_items.add(new EnableComponentAction(tree_view, model, selection));
+                menu_items.add(new DisableAction(tree_view, model, selection));
+                if (AlarmUI.mayConfigure(model) && is_editing_mode.get())
+                    menu_items.add(new RemoveComponentAction(tree_view, model, selection));
             }
 
             menu_items.add(new SeparatorMenuItem());
+
             menu_items.add(new PrintAction(tree_view));
             menu_items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
 
@@ -767,9 +783,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     {
         tree_view.setOnMouseClicked(event ->
         {
-            if (!AlarmUI.mayConfigure(model)       ||
-                event.getClickCount() != 2    ||
-                tree_view.getSelectionModel().getSelectedItems().size() != 1)
+            if (!AlarmUI.mayConfigure(model)
+                    || !is_editing_mode.get()
+                    || event.getClickCount() != 2
+                    || tree_view.getSelectionModel().getSelectedItems().size() != 1)
                 return;
 
             final AlarmTreeItem<?> item = tree_view.getSelectionModel().getSelectedItems().get(0).getValue();
