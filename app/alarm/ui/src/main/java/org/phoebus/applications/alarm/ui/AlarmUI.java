@@ -137,6 +137,8 @@ public class AlarmUI
         createColor(Preferences.undefined_severity_text_color),                                                                  // UNDEFINED
     };
 
+    private static final Color disabled_color = createColor(Preferences.disabled_alarms_text_color);
+    private static final Background disabled_background = new Background(new BackgroundFill(createColor(Preferences.disabled_alarms_background_color), CornerRadii.EMPTY, Insets.EMPTY));
 
     /** Icon for disabled alarms */
     public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
@@ -181,6 +183,15 @@ public class AlarmUI
         return severity_backgrounds[severity.ordinal()];
     }
 
+    public static Color getDisabledColor()
+    {
+        return disabled_color;
+    }
+
+    public static Background getDisabledBackground()
+    {
+        return disabled_background;
+    }
 
     /** @param severity {@link SeverityLevel}
      *  @return Background, may be <code>null</code>

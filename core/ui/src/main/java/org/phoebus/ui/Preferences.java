@@ -96,6 +96,10 @@ public class Preferences
     @Preference public static int[] alarm_area_panel_invalid_severity_background_color;
     /** undefined_severity_background_color */
     @Preference public static int[] alarm_area_panel_undefined_severity_background_color;
+    /** disabled_alarms_text_color */
+    @Preference public static int[] disabled_alarms_text_color;
+    /** disabled_alarms_background_color */
+    @Preference public static int[] disabled_alarms_background_color;
     /** cache_hint_for_picture_and_symbol_widgets */
     @Preference public static String cache_hint_for_picture_and_symbol_widgets;
     @Preference public static boolean save_credentials;
