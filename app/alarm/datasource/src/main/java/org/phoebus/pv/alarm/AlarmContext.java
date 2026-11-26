@@ -5,6 +5,7 @@ import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
+import org.phoebus.applications.alarm.client.AlarmClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.framework.jobs.JobManager;
 
@@ -200,10 +201,9 @@ public class AlarmContext
         }
 
         @Override
-        public void serverStateChanged(boolean alive)
+        public void alarmClientStateChanged(AlarmClientState oldState, AlarmClientState state)
         {
-            if(!alive)
-            {
+            if (state.isServerDisconnectedState()) {
                 // Disconnect AlarmPVs associated with this config only
                 pvs.values().stream()
                         .filter(alarmPV -> {

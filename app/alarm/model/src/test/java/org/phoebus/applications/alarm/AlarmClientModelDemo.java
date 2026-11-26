@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm;
 import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
+import org.phoebus.applications.alarm.client.AlarmClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.print.ModelPrinter;
 
@@ -35,9 +36,9 @@ public class AlarmClientModelDemo
         client.addListener(new AlarmClientListener()
         {
             @Override
-            public void serverStateChanged(final boolean alive)
+            public void alarmClientStateChanged(final AlarmClientState oldState, final AlarmClientState state)
             {
-                System.out.println("Server alive: " + alive);
+                System.out.println("Server state: " + state);
             }
 
             @Override

@@ -30,6 +30,7 @@ import javafx.scene.layout.StackPane;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
+import org.phoebus.applications.alarm.client.AlarmClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
@@ -112,14 +113,14 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
 
     // AlarmClientModelListener
     @Override
-    public void serverStateChanged(final boolean alive)
+    public void alarmClientStateChanged(final AlarmClientState oldState, final AlarmClientState state)
     {
         Platform.runLater(() ->
         {
-            if (alive)
-                getChildren().setAll(grid);
+            if (state.isServerDisconnectedState())
+                getChildren().setAll(AlarmUI.createAlarmClientStateLabel(state));
             else
-                getChildren().setAll(AlarmUI.createNoServerLabel());
+                getChildren().setAll(grid);
         });
     }
 

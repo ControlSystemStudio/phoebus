@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.ui;
 import java.util.Arrays;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.Preferences;
@@ -250,12 +251,32 @@ public class AlarmUI
         return haveQualifiedAuthorization(model, "alarm_notify");
     }
 
-    /** @return Label that indicates missing server connection */
-    public static Label createNoServerLabel()
+    public static Background getAlarmClientStateBackground(final AlarmClientState state) {
+        final Color color = switch (state) {
+            case CONNECTING -> Color.DARKCYAN;
+            case LOADING -> Color.DARKBLUE;
+            case NO_INITIAL_KAFKA_CONNECTION ->  Color.DARKRED;
+            case NO_KAFKA_CONNECTION -> Color.DARKRED;
+            case CONNECTED -> Color.GREEN;
+            case NO_ALARMSERVER_CONNECTION -> Color.DARKRED;
+            case CLIENT_ERROR -> Color.DARKGOLDENROD;
+            case CLIENT_SHUT_DOWN -> Color.DARKVIOLET;
+        };
+        return new Background(new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY));
+    }
+
+    /** @return Label that that indicates the server status, initially showing {@link AlarmClientState.CONNECTING} */
+    public static Label createAlarmClientStateLabel()
     {
-        final Label no_server = new Label("No Alarm Server Connection");
-        no_server.setTextFill(Color.WHITE);
-        no_server.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
-        return no_server;
+        return createAlarmClientStateLabel(AlarmClientState.CONNECTING);
+    }
+
+    /** @return Label that that indicates the given server state */
+    public static Label createAlarmClientStateLabel(final AlarmClientState state)
+    {
+        final Label noServer = new Label(state.getDisplayName());
+        noServer.setTextFill(Color.WHITE);
+        noServer.setBackground(getAlarmClientStateBackground(state));
+        return noServer;
     }
 }
