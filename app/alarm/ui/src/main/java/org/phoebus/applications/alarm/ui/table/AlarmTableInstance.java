@@ -19,6 +19,7 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.ui.AlarmConfigSelector;
 import org.phoebus.applications.alarm.ui.AlarmURI;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -112,8 +113,7 @@ class AlarmTableInstance implements AppInstance
 
     private void changeConfig(final String new_config_name)
     {
-        // Dispose existing setup
-        dispose();
+        JobManager.schedule("Dispose alarm client for config " + config_name, _ -> dispose());
 
         try
         {
@@ -143,11 +143,6 @@ class AlarmTableInstance implements AppInstance
 
     private void dispose()
     {
-        if (mediator != null)
-        {
-            client.removeListener(mediator);
-            mediator = null;
-        }
         if (client != null)
         {
             client.shutdown();
