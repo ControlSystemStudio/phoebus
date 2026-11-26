@@ -7,12 +7,15 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
-import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 
@@ -22,7 +25,6 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.Messages;
-import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.time.LocalDateTime;
@@ -43,8 +45,8 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
     // So we add our own "graphics" to hold an icon and text
     private final Label label = new Label();
     private final ImageView image = new ImageView();
-    private final Label disabledTimerIndicator = new Label("");
-    private final HBox content = new HBox(image, label, disabledTimerIndicator);
+    private final Label infoLabel = new Label("");
+    private final HBox content = new HBox(image, label, infoLabel);
 
     // TreeCell optimizes redraws by suppressing updates
     // when old and new values match.
@@ -67,7 +69,10 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
 
     public AlarmTreeViewCell() {
         content.setAlignment(Pos.CENTER_LEFT);
-        disabledTimerIndicator.setTextFill(Color.GRAY);
+        infoLabel.textFillProperty().bind(Bindings.createObjectBinding(
+                () -> isSelected() ? Color.WHITE : Color.gray(0.2),
+                selectedProperty()
+        ));
     }
 
     @Override
@@ -102,18 +107,18 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                     label.setBackground(AlarmUI.getBackground(state.severity));
                     image.setImage(AlarmUI.getIcon(state.severity));
 
-                    disabledTimerIndicator.setText("");
+                    infoLabel.setText("");
                 } else {
                     if (leaf.getEnabled().enabled_date != null) {
                         LocalDateTime enabledDate = leaf.getEnabled().enabled_date;
                         String enabledDateString = TimestampFormats.SECONDS_FORMAT.format(enabledDate);
-                        disabledTimerIndicator.setText("(" + Messages.disabledUntil + " " + enabledDateString + ")");
+                        infoLabel.setText("(" + Messages.disabledUntil + " " + enabledDateString + ")");
                     } else {
-                        disabledTimerIndicator.setText("(" + Messages.disabled + ")");
+                        infoLabel.setText("(" + Messages.disabled + ")");
                     }
 
-                    label.setTextFill(Color.GRAY);
-                    label.setBackground(Background.EMPTY);
+                    label.setTextFill(AlarmUI.getDisabledColor());
+                    label.setBackground(AlarmUI.getDisabledBackground());
                     image.setImage(AlarmUI.disabled_icon);
                 }
 
@@ -125,14 +130,22 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 String labelText = item.getName();
                 label.setText(labelText);
                 SeverityLevel severityLevel = item.getState().severity;
-                disabledTimerIndicator.setText(AlarmTreeHelper.treeNodeInfoToString(info));
-                if(info.disabled() + info.disabledWithEnableDate() == info.leaves().size()){
-                    label.setTextFill(Color.GRAY);
+                infoLabel.setText(AlarmTreeHelper.treeNodeInfoToString(info));
+                if (info.leaves().isEmpty())
+                {
+                    label.setTextFill(Color.gray(0.7));
+                    label.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
                 }
-                else{
+                else if (info.disabled() + info.disabledWithEnableDate() == info.leaves().size())
+                {
+                    label.setTextFill(AlarmUI.getDisabledColor());
+                    label.setBackground(AlarmUI.getDisabledBackground());
+                }
+                else
+                {
                     label.setTextFill(AlarmUI.getColor(severityLevel));
+                    label.setBackground(AlarmUI.getBackground(severityLevel));
                 }
-                label.setBackground(AlarmUI.getBackground(severityLevel));
                 image.setImage(AlarmUI.getIcon(severityLevel));
             }
             // Profiler showed small advantage when skipping redundant 'setGraphic' call
