@@ -10,6 +10,7 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propGap;
 import static org.csstudio.display.builder.model.properties.InsetsWidgetProperty.runtimePropInsets;
 
 import java.util.Arrays;
@@ -75,6 +76,7 @@ public class ArrayWidget extends PVWidget
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<int[]> insets;
+    private volatile WidgetProperty<Integer> gap;
 
     /** Constructor */
     public ArrayWidget()
@@ -93,6 +95,7 @@ public class ArrayWidget extends PVWidget
         properties.add(background = propBackgroundColor.createProperty(this,
                 WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(insets = runtimePropInsets.createProperty(this, new int[] { 0, 0 }));
+        properties.add(gap = propGap.createProperty(this, 0));
     }
 
     /** {@inheritDoc} */
@@ -139,5 +142,11 @@ public class ArrayWidget extends PVWidget
     public WidgetProperty<int[]> runtimePropInsets()
     {
         return insets;
+    }
+
+    /** @return 'gap' property */
+    public WidgetProperty<Integer> propGap()
+    {
+        return gap;
     }
 }

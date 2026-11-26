@@ -7,6 +7,9 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.properties;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.xml.stream.XMLStreamWriter;
 
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
@@ -24,6 +27,7 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class IntegerWidgetProperty extends MacroizedWidgetProperty<Integer>
 {
+    private static final Logger logger = Logger.getLogger(IntegerWidgetProperty.class.getName());
     final private Integer min, max;
 
     /** Constructor
@@ -92,10 +96,18 @@ public class IntegerWidgetProperty extends MacroizedWidgetProperty<Integer>
     @Override
     protected Integer restrictValue(final Integer requested_value)
     {
-        if (requested_value.compareTo(min) < 0)
+        if (requested_value.compareTo(min) < 0){
+            logger.log(Level.WARNING,
+                    "Property '" + getName() + "' value " + requested_value +
+                    " is below minimum " + min + ", using " + min);
             return min;
-        if (requested_value.compareTo(max) > 0)
+        }
+        if (requested_value.compareTo(max) > 0) {
+            logger.log(Level.WARNING,
+                    "Property '" + getName() + "' value " + requested_value +
+                    " is above maximum " + max + ", using " + max);
             return max;
+        }
         return requested_value;
     }
 

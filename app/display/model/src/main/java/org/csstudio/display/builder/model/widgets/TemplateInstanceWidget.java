@@ -10,6 +10,7 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propGap;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 
 import java.util.Arrays;
@@ -79,17 +80,6 @@ public class TemplateInstanceWidget extends VisibleWidget
         new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.WIDGET, "instances", "Instances",
                 (widget, index) -> new InstanceProperty(widget, index),
                 /* minimum count */ 1);
-
-    /** 'gap' property: Gap between instances */
-    public static final WidgetPropertyDescriptor<Integer> propGap =
-        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.DISPLAY, "gap", Messages.WidgetProperties_Gap)
-        {
-            @Override
-            public WidgetProperty<Integer> createProperty(final Widget widget, final Integer value)
-            {
-                return new IntegerWidgetProperty(this, widget, value, 0, 500);
-            }
-        };
 
     /** 'wrap_count' property: Optional instance count for wrapping to next row/column */
     public static final WidgetPropertyDescriptor<Integer> propWrapCount =
